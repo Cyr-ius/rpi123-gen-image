@@ -4,3 +4,7 @@ packages
 *.swp
 *.bak
 *.log
+config
+linux
+firmware-*
+bootstrap.d/flags

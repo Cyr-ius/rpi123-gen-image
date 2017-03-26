@@ -42,6 +42,8 @@ set -x
 
 # Raspberry Pi model configuration
 RPI_MODEL=${RPI_MODEL:=2}
+RPI1_DTB_FILE=${RPI1_DTB_FILE:=bcm2708-rpi-b-plus.dtb}
+RPI1_UBOOT_CONFIG=${RPI1_UBOOT_CONFIG:=rpi_defconfig}
 RPI2_DTB_FILE=${RPI2_DTB_FILE:=bcm2709-rpi-2-b.dtb}
 RPI2_UBOOT_CONFIG=${RPI2_UBOOT_CONFIG:=rpi_2_defconfig}
 RPI3_DTB_FILE=${RPI3_DTB_FILE:=bcm2710-rpi-3-b.dtb}
@@ -53,13 +55,14 @@ KERNEL_ARCH=${KERNEL_ARCH:=arm}
 RELEASE_ARCH=${RELEASE_ARCH:=armhf}
 CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf-}
 COLLABORA_KERNEL=${COLLABORA_KERNEL:=3.18.0-trunk-rpi2}
-KERNEL_DEFCONFIG=${KERNEL_DEFCONFIG:=bcm2709_defconfig}
-KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
+KERNEL_DEFCONFIG=`[ ${RPI_MODEL} = 1 ] && echo bcmrpi_defconfig || echo bcm2709_defconfig`
+KERNEL_IMAGE=`[ ${RPI_MODEL} = 1 ] && echo kernel.img || echo kernel7.img`
 QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
 
 # URLs
 KERNEL_URL=${KERNEL_URL:=https://github.com/raspberrypi/linux}
 FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware/raw/master/boot}
+VC_URL=${VC_URL:=https://github.com/raspberrypi/firmware/archive/1.20161215.tar.gz}
 WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm}
 COLLABORA_URL=${COLLABORA_URL:=https://repositories.collabora.co.uk/debian}
 FBTURBO_URL=${FBTURBO_URL:=https://github.com/ssvb/xf86-video-fbturbo.git}
@@ -71,12 +74,14 @@ BUILDDIR="${BASEDIR}/build"
 # Prepare date string for default image file name
 DATE="$(date +%Y-%m-%d)"
 IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-rpi${RPI_MODEL}-${RELEASE}}
+#Cleaning building directories and files 
+RESET=${RESET:=false}
 
 # Chroot directories
 R="${BUILDDIR}/chroot"
 ETC_DIR="${R}/etc"
 LIB_DIR="${R}/lib"
-BOOT_DIR="${R}/boot/firmware"
+BOOT_DIR="${R}/boot"
 KERNEL_DIR="${R}/usr/src/linux"
 WLAN_FIRMWARE_DIR="${R}/lib/firmware/brcm"
 
@@ -131,6 +136,8 @@ ENABLE_RSYSLOG=${ENABLE_RSYSLOG:=true}
 ENABLE_USER=${ENABLE_USER:=true}
 USER_NAME=${USER_NAME:="pi"}
 ENABLE_ROOT=${ENABLE_ROOT:=false}
+ENABLE_SPLASHSCREEN=${ENABLE_SPLASHSCREEN:=false}
+ENABLE_KODI=${ENABLE_KODI:=false}
 
 # SSH settings
 SSH_ENABLE_ROOT=${SSH_ENABLE_ROOT:=false}
@@ -160,6 +167,8 @@ KERNEL_THREADS=${KERNEL_THREADS:=1}
 KERNEL_HEADERS=${KERNEL_HEADERS:=true}
 KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG:=false}
 KERNEL_REMOVESRC=${KERNEL_REMOVESRC:=true}
+KERNEL_PACKAGE=${KERNEL_PACKAGE:=false}
+KERNEL_INSTALLPACKAGES=${KERNEL_INSTALLPACKAGES:=false}
 
 # Kernel compilation from source directory settings
 KERNELSRC_DIR=${KERNELSRC_DIR:=""}
@@ -192,7 +201,7 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,sudo,systemd,sysvinit-utils"
+APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,sudo,systemd,sysvinit-utils,fake-hwclock,net-tools,bash-completion"
 
 # Packages required for bootstrapping
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc psmisc dbus sudo"
@@ -204,7 +213,10 @@ COMPILER_PACKAGES=""
 set +x
 
 # Set Raspberry Pi model specific configuration
-if [ "$RPI_MODEL" = 2 ] ; then
+if [ "$RPI_MODEL" = 1 ] ; then
+  DTB_FILE=${RPI1_DTB_FILE}
+  UBOOT_CONFIG=${RPI1_UBOOT_CONFIG}
+elif [ "$RPI_MODEL" = 2 ] ; then
   DTB_FILE=${RPI2_DTB_FILE}
   UBOOT_CONFIG=${RPI2_UBOOT_CONFIG}
 elif [ "$RPI_MODEL" = 3 ] ; then
@@ -353,7 +365,7 @@ fi
 # Don't clobber an old build
 if [ -e "$BUILDDIR" ] ; then
   echo "error: directory ${BUILDDIR} already exists, not proceeding"
-  exit 1
+  #exit 1
 fi
 
 # Setup chroot directory
@@ -452,16 +464,33 @@ if [ "$KERNEL_REDUCE" = true ] ; then
   KERNELSRC_CONFIG=false
 fi
 
+# Build kernel Package
+if [ "$KERNEL_PACKAGE" = true ]; then
+  . "./build-kernel-package.sh"
+  exit
+fi
+
+# Clean all building folder
+if [ "$RESET" = true ]; then
+  [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
+  [ -d "custom.d/flags" ] && rm -rf custom.d/flags
+  [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}
+fi
+
 # Execute bootstrap scripts
+mkdir -p "bootstrap.d/flags" && chmod o+rw "bootstrap.d/flags"
 for SCRIPT in bootstrap.d/*.sh; do
   head -n 3 "$SCRIPT"
-  . "$SCRIPT"
+  FLAG=$(basename "$SCRIPT")
+    [ ! -f "bootstrap.d/flags/${FLAG%.*}" ] && . "$SCRIPT" && touch "bootstrap.d/flags/${FLAG%.*}"
 done
 
 ## Execute custom bootstrap scripts
+mkdir -p "custom.d/flags" && chmod o+rw "custom.d/flags"
 if [ -d "custom.d" ] ; then
   for SCRIPT in custom.d/*.sh; do
-    . "$SCRIPT"
+    FLAG=$(basename "$SCRIPT")
+    [ ! -f "custom.d/flags/${FLAG%.*}" ] && . "$SCRIPT" && touch "custom.d/flags/${FLAG%.*}"
   done
 fi
 
@@ -497,8 +526,8 @@ chroot_exec apt-get -y autoclean
 chroot_exec apt-get -y autoremove
 
 # Unmount mounted filesystems
-umount -l "${R}/proc"
-umount -l "${R}/sys"
+[ `grep -qs "${R}/proc" /proc/mounts` ] && umount -l "${R}/proc"
+[ `grep -qs "${R}/sys"  /proc/mounts` ] && umount -l "${R}/sys"
 
 # Clean up directories
 rm -rf "${R}/run/*"
@@ -602,11 +631,12 @@ mkfs.ext4 "$ROOT_LOOP"
 mkdir -p "$BUILDDIR/mount"
 mount "$ROOT_LOOP" "$BUILDDIR/mount"
 
-mkdir -p "$BUILDDIR/mount/boot/firmware"
-mount "$FRMW_LOOP" "$BUILDDIR/mount/boot/firmware"
+#mkdir -p "$BUILDDIR/mount/boot/firmware"
+mkdir -p "$BUILDDIR/mount/boot"
+mount "$FRMW_LOOP" "$BUILDDIR/mount/boot"
 
 # Copy all files from the chroot to the loop device mount point directory
-rsync -a "${R}/" "$BUILDDIR/mount/"
+rsync -a  "${R}/" "$BUILDDIR/mount/"
 
 # Unmount all temporary loop devices and mount points
 cleanup
@@ -626,4 +656,15 @@ else
 
   # Image was successfully created
   echo "$IMAGE_NAME.img ($(expr \( ${TABLE_SECTORS} + ${FRMW_SECTORS} + ${ROOT_SECTORS} \) \* 512 \/ 1024 \/ 1024)M)" ": successfully created"
+fi
+
+echo "Do you want format SD Card (y/n) ? "
+read  reply
+echo    # (optional) move to a new line
+if [ "$reply" = "y" ]; then
+ echo "What your device name ? "
+ read device
+ sfdisk --delete /dev/"$device"
+ partprobe /dev/"$device"
+ dd if=$IMAGE_NAME.img of=/dev/"$device" bs=4M
 fi

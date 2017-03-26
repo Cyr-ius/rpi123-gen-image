@@ -20,17 +20,12 @@ cleanup (){
   umount -l "${R}/proc" 2> /dev/null
   umount -l "${R}/sys" 2> /dev/null
   umount -l "${R}/dev/pts" 2> /dev/null
-  umount "$BUILDDIR/mount/boot/firmware" 2> /dev/null
+  umount "$BUILDDIR/mount/boot" 2> /dev/null
   umount "$BUILDDIR/mount" 2> /dev/null
   cryptsetup close "${CRYPTFS_MAPPING}" 2> /dev/null
   losetup -d "$ROOT_LOOP" 2> /dev/null
   losetup -d "$FRMW_LOOP" 2> /dev/null
   trap - 0 1 2 3 6
-}
-
-chroot_exec() {
-  # Exec command in chroot
-  LANG=C LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot ${R} $*
 }
 
 install_readonly() {
@@ -54,6 +49,14 @@ use_template () {
   . "./templates/${CONFIG_TEMPLATE}"
 }
 
+chroot_exec() {
+  # Copy qemu emulator binary to chroot
+  [ ! -f "${R}${QEMU_BINARY}" ] && install_exec "${QEMU_BINARY}" "${R}${QEMU_BINARY}"
+  
+  # Exec command in chroot
+  LANG=C LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot ${R} $*
+}
+
 chroot_install_cc() {
   # Install c/c++ build environment inside the chroot
   if [ -z "${COMPILER_PACKAGES}" ] ; then
@@ -73,4 +76,8 @@ chroot_remove_cc() {
     chroot_exec apt-get -qq -y --auto-remove purge ${COMPILER_PACKAGES}
     COMPILER_PACKAGES=""
   fi
+}
+install_deb() {
+  # Install debian packages
+  chroot_exec apt-get -q -y --allow-unauthenticated --no-install-recommends install $*
 }

@@ -5,6 +5,6 @@ packages
 *.bak
 *.log
 config
-linux
+linux-*
 firmware-*
 bootstrap.d/flags

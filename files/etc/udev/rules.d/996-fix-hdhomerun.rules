@@ -1,0 +1,2 @@
+KERNEL=="hdhomerun_control", MODE="0660", GROUP="video"
+

@@ -5,7 +5,7 @@
 # Load utility functions
 . ./functions.sh
 
-if [ "$BUILD_KERNEL" = true ] ; then
+if [ "$BUILD_KERNEL" = true  ] ; then
   if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
     # Install boot binaries from local directory
     cp ${RPI_FIRMWARE_DIR}/boot/bootcode.bin ${BOOT_DIR}/bootcode.bin
@@ -42,9 +42,9 @@ fi
 
 # Setup firmware boot cmdline
 if [ "$ENABLE_SPLITFS" = true ] ; then
-  CMDLINE="dwc_otg.lpm_enable=0 root=/dev/sda1 rootfstype=ext4 rootflags=commit=100,data=writeback elevator=deadline rootwait console=tty1"
+  CMDLINE="dwc_otg.lpm_enable=0 dwc_otg.fiq_fix_enable=1 sdhci-bcm2708.sync_after_dma=0 root=/dev/sda1 rootfstype=ext4 elevator=deadline rootwait console=tty1 fsck.repair=yes quiet logo.nologo"
 else
-  CMDLINE="dwc_otg.lpm_enable=0 root=/dev/mmcblk0p2 rootfstype=ext4 rootflags=commit=100,data=writeback elevator=deadline rootwait console=tty1"
+  CMDLINE="dwc_otg.lpm_enable=0 dwc_otg.fiq_fix_enable=1 sdhci-bcm2708.sync_after_dma=0 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait console=tty1 fsck.repair=yes quiet logo.nologo"
 fi
 
 # Add encrypted root partition to cmdline.txt
@@ -87,11 +87,27 @@ install_readonly files/boot/config.txt "${BOOT_DIR}/config.txt"
 # Setup minimal GPU memory allocation size: 16MB (no X)
 if [ "$ENABLE_MINGPU" = true ] ; then
   echo "gpu_mem=16" >> "${BOOT_DIR}/config.txt"
+else
+  # Optimize settings
+  echo "gpu_mem=16" >> "${BOOT_DIR}/config.txt"
+  echo "gpu_mem_512=128" >> "${BOOT_DIR}/config.txt"
+  echo "gpu_mem_1024=256" >> "${BOOT_DIR}/config.txt"
+  echo "hdmi_ignore_cec_init=1" >> "${BOOT_DIR}/config.txt"
+  echo "disable_overscan=1" >> "${BOOT_DIR}/config.txt"
+  echo "start_x=1" >> "${BOOT_DIR}/config.txt"
+  echo "dtoverlay=lirc-rpi:gpio_out_pin=17,gpio_in_pin=18" >> "${BOOT_DIR}/config.txt"
+  echo "disable_splash=1" >> "${BOOT_DIR}/config.txt"  
 fi
 
 # Setup boot with initramfs
 if [ "$ENABLE_INITRAMFS" = true ] ; then
-  echo "initramfs initramfs-${KERNEL_VERSION} followkernel" >> "${BOOT_DIR}/config.txt"
+  if [ ! -z ${KERNEL_VERSION} ]; then
+    echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> "${BOOT_DIR}/config.txt"
+  else
+    PINITRD=$(ls ${BOOT_DIR}/initrd.img*)
+    INITRD=$(basename ${PINITRD})
+    echo "initramfs ${INITRD} followkernel" >> "${BOOT_DIR}/config.txt"
+  fi
 fi
 
 # Disable RPi3 Bluetooth and restore ttyAMA0 serial device
@@ -103,8 +119,8 @@ if [ "$RPI_MODEL" = 3 ] ; then
 fi
 
 # Create firmware configuration and cmdline symlinks
-ln -sf firmware/config.txt "${R}/boot/config.txt"
-ln -sf firmware/cmdline.txt "${R}/boot/cmdline.txt"
+#ln -sf firmware/config.txt "${R}/boot/config.txt"
+#ln -sf firmware/cmdline.txt "${R}/boot/cmdline.txt"
 
 # Install and setup kernel modules to load at boot
 mkdir -p "${R}/lib/modules-load.d/"
@@ -149,3 +165,17 @@ install_readonly files/modules/raspi-blacklist.conf "${ETC_DIR}/modprobe.d/raspi
 
 # Install sysctl.d configuration files
 install_readonly files/sysctl.d/81-rpi-vm.conf "${ETC_DIR}/sysctl.d/81-rpi-vm.conf"
+
+if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
+  # Move downloaded firmware binary blob
+  cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
+
+  # Install VC libraries
+  echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
+fi
+
+# Install raspi-config
+install_deb raspi-config
+
+# Install rules for udev
+install_readonly files/etc/udev/rules.d/* "${ETC_DIR}/udev/rules.d/"

@@ -1,0 +1,30 @@
+#!/bin/sh
+set -e
+
+PREREQS=""
+case $1 in
+    prereqs) echo "${PREREQS}"; exit 0;;
+esac
+
+. /usr/share/initramfs-tools/hook-functions
+
+##
+copy_exec /sbin/sfdisk /sbin
+copy_exec /usr/bin/growpart /sbin
+copy_exec /sbin/udevadm /sbin
+copy_exec /bin/grep /bin
+copy_exec /usr/bin/awk /bin
+copy_exec /usr/bin/cut /bin
+copy_exec /usr/bin/tail /bin
+copy_exec /bin/sed /bin
+copy_exec /bin/rm /bin
+copy_exec /sbin/fdisk /sbin
+copy_exec /sbin/parted /sbin
+copy_exec /sbin/e2fsck /sbin
+copy_exec /sbin/fsck.ext2 /sbin
+copy_exec /sbin/fsck.ext3 /sbin
+copy_exec /sbin/fsck.ext4 /sbin
+copy_exec /sbin/resize2fs /sbin
+copy_exec /sbin/partprobe /sbin
+
+# vi: ts=4 noexpandtab

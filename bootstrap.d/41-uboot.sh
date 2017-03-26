@@ -45,13 +45,13 @@ if [ "$ENABLE_UBOOT" = true ] ; then
 
   if [ "$ENABLE_INITRAMFS" = true ] ; then
     # Convert generated initramfs for U-Boot using mkimage
-    chroot_exec /usr/sbin/mkimage -A "${KERNEL_ARCH}" -T ramdisk -C none -n "initramfs-${KERNEL_VERSION}" -d "/boot/firmware/initramfs-${KERNEL_VERSION}" "/boot/firmware/initramfs-${KERNEL_VERSION}.uboot"
+    chroot_exec /usr/sbin/mkimage -A "${KERNEL_ARCH}" -T ramdisk -C none -n "initrd.img-${KERNEL_VERSION}" -d "/boot/firmware/initramfs-${KERNEL_VERSION}" "/boot/firmware/initramfs-${KERNEL_VERSION}.uboot"
 
     # Remove original initramfs file
-    rm -f "${BOOT_DIR}/initramfs-${KERNEL_VERSION}"
+    rm -f "${BOOT_DIR}/initrd.img-${KERNEL_VERSION}"
 
     # Configure U-Boot to load generated initramfs
-    printf "# Set initramfs file\nsetenv initramfs initramfs-${KERNEL_VERSION}.uboot\n\n$(cat ${BOOT_DIR}/uboot.mkimage)" > "${BOOT_DIR}/uboot.mkimage"
+    printf "# Set initramfs file\nsetenv initramfs initrd.img-${KERNEL_VERSION}.uboot\n\n$(cat ${BOOT_DIR}/uboot.mkimage)" > "${BOOT_DIR}/uboot.mkimage"
     printf "\nbootz \${kernel_addr_r} \${ramdisk_addr_r} \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
   else # ENABLE_INITRAMFS=false
     # Remove initramfs from U-Boot mkfile

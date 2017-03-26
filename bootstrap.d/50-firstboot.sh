@@ -5,7 +5,12 @@
 # Load utility functions
 . ./functions.sh
 
+display_message() {
+ [ "$ENABLE_SPLASHSCREEN" = true ] && echo "plymouth update --status=\"${*}\"" >> "${ETC_DIR}/rc.firstboot"
+}
+
 # Prepare rc.firstboot script
+display_message "Please wait, first boot : initialize configuration..."
 cat files/firstboot/10-begin.sh > "${ETC_DIR}/rc.firstboot"
 
 # Ensure openssh server host keys are regenerated on first boot
@@ -16,7 +21,9 @@ fi
 # Prepare filesystem auto expand
 if [ "$EXPANDROOT" = true ] ; then
   if [ "$ENABLE_CRYPTFS" = false ] ; then
-    cat files/firstboot/22-expandroot.sh >> "${ETC_DIR}/rc.firstboot"
+    if [ "$ENABLE_INITRAMFS" = false ]; then
+      cat files/firstboot/22-expandroot.sh >> "${ETC_DIR}/rc.firstboot"
+    fi
   else
     # Regenerate initramfs to remove encrypted root partition auto expand
     cat files/firstboot/23-regenerate-initramfs.sh >> "${ETC_DIR}/rc.firstboot"
@@ -32,11 +39,26 @@ cat files/firstboot/25-create-resolv-symlink.sh >> "${ETC_DIR}/rc.firstboot"
 # Configure automatic network interface names
 if [ "$ENABLE_IFNAMES" = true ] ; then
   cat files/firstboot/26-config-ifnames.sh >> "${ETC_DIR}/rc.firstboot"
+  cat files/firstboot/27-restart-network.sh >> "${ETC_DIR}/rc.firstboot"
+fi
+
+# Add package
+display_message "Please wait, first boot : loading package..."
+cat files/firstboot/28-install-package.sh >> "${ETC_DIR}/rc.firstboot"
+chmod +x "${ETC_DIR}/rc.firstboot"
+
+# Enable mediacenter.service if Kodi installed
+if [ "$ENABLE_KODI" = true ]; then
+display_message "Please wait, first boot : enable mediacenter..."
+cat files/firstboot/30-enable-mediacenter.sh >> "${ETC_DIR}/rc.firstboot"
+chmod +x "${ETC_DIR}/rc.firstboot"
 fi
 
 # Finalize rc.firstboot script
 cat files/firstboot/99-finish.sh >> "${ETC_DIR}/rc.firstboot"
 chmod +x "${ETC_DIR}/rc.firstboot"
+display_message "Please wait, first boot : starting Kodi..."
+
 
 # Install default rc.local if it does not exist
 if [ ! -f "${ETC_DIR}/rc.local" ] ; then

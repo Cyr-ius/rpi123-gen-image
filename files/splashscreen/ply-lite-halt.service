@@ -1,0 +1,10 @@
+[Unit]
+Description=Show Ply-lite Halt Screen
+DefaultDependencies=no
+Before=halt.service
+After=ply-lite-start.service
+
+[Service]
+Type=simple
+RemainAfterExit=yes
+ExecStart=/bin/ply-image /usr/share/ply-lite/halt.png

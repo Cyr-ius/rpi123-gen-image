@@ -1,0 +1,14 @@
+[Unit]
+Description=Show Ply-lite Start Screen
+DefaultDependencies=no
+After=local-fs.target
+Before=network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/setterm --term linux --cursor off ; /bin/echo 0 > /sys/class/graphics/fbcon/cursor_blink ; /bin/echo 0 > /sys/devices/virtual/graphics/fbcon/cursor_blink ; /bin/chvt 7 ; /bin/ply-image
+
+[Install]
+WantedBy=sysinit.target

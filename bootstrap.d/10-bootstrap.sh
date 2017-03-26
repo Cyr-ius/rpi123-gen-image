@@ -25,7 +25,9 @@ if [ "$RELEASE" = "stretch" ] ; then
 fi
 
 # Base debootstrap (unpack only)
+if [ ! "$(ls -A ${R})" ] ; then
 http_proxy=${APT_PROXY} debootstrap ${EXCLUDES} --arch="${RELEASE_ARCH}" --foreign ${VARIANT} --components="${COMPONENTS}" --include="${APT_INCLUDES}" "${RELEASE}" "${R}" "http://${APT_SERVER}/debian"
+fi
 
 # Copy qemu emulator binary to chroot
 install_exec "${QEMU_BINARY}" "${R}${QEMU_BINARY}"
@@ -35,7 +37,9 @@ mkdir -p "${R}/usr/share/keyrings"
 install_readonly /usr/share/keyrings/debian-archive-keyring.gpg "${R}/usr/share/keyrings/debian-archive-keyring.gpg"
 
 # Complete the bootstrapping process
+if [ "$(ls -A ${R}/debootstrap)" ] ; then
 chroot_exec /debootstrap/debootstrap --second-stage
+fi
 
 # Mount required filesystems
 mount -t proc none "${R}/proc"

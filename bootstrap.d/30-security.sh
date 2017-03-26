@@ -27,3 +27,7 @@ fi
 if [ "$ENABLE_CONSOLE" = true ] ; then
   chroot_exec systemctl enable serial-getty\@ttyAMA0.service
 fi
+
+# Add rights for user
+chroot_exec usermod -a -G video $USER_NAME
+chroot_exec usermod -a -G input $USER_NAME

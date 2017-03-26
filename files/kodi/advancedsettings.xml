@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<advancedsettings>
+    <imageres>540</imageres>
+    <fanartres>720</fanartres>
+    <splash>false</splash>
+    <handlemounting>0</handlemounting>
+    <samba>
+       <clienttimeout>30</clienttimeout>
+    </samba>
+</advancedsettings>

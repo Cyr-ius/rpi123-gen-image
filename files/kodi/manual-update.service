@@ -1,0 +1,10 @@
+[Unit]
+Description=Updates system outside of mediacenter
+After=remote-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/manual-update
+
+[Install]
+WantedBy = multi-user.target

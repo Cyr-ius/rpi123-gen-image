@@ -7,8 +7,8 @@
 
 #Optimize mem arm for rpi23
 if [ "$RPI_MODEL" -ne "1" ];then
-	install_readonly files/customize/libarmmem.so "${R}/usr/lib/"
-	install_readonly files/customize/libarmmem.a "${R}/usr/lib/"
+	install_readonly files/customize/rbp$RPI_MODEL/libarmmem.so "${R}/usr/lib/"
+	install_readonly files/customize/rbp$RPI_MODEL/libarmmem.a "${R}/usr/lib/"
 fi
 
 # Fix - Error PROTOCOL_V23 = PROTOCOL_TLS in python 2.7.13

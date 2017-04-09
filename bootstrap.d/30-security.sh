@@ -38,7 +38,6 @@ install_readonly files/etc/profile "${R}/etc/"
 # Add rights for sudoers
 mkdir -p "${R}/etc/sudoers.d"
 echo "${USER_NAME}     ALL= NOPASSWD: ALL" > "${R}/etc/sudoers.d/no-sudo-password"
-echo "Defaults        !secure_path" > "${R}/etc/sudoers.d/no-secure-path"
 
 # Nice limits change
 echo "* - nice -1" > "${ETC_DIR}/security/limits.d/no-limit.conf"

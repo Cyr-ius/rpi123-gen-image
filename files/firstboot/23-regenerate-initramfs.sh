@@ -2,7 +2,7 @@ logger -t "rc.firstboot" "Regenerating initramfs to remove encrypted root partit
 
 KERNEL_VERSION=$(uname -r)
 KERNEL_ARCH=$(uname -m)
-INITRAMFS="/boot/firmware/initramfs-${KERNEL_VERSION}"
+INITRAMFS="/boot/initramfs.gz"
 INITRAMFS_UBOOT="${INITRAMFS}.uboot"
 
 # Extract kernel arch

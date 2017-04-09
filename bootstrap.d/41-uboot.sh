@@ -5,6 +5,9 @@
 # Load utility functions
 . ./functions.sh
 
+#Get kernel version 
+KERNEL_VERSION=$(cat ${R}/boot/version)
+
 # Fetch and build U-Boot bootloader
 if [ "$ENABLE_UBOOT" = true ] ; then
   # Install c/c++ build environment inside the chroot
@@ -45,7 +48,7 @@ if [ "$ENABLE_UBOOT" = true ] ; then
 
   if [ "$ENABLE_INITRAMFS" = true ] ; then
     # Convert generated initramfs for U-Boot using mkimage
-    chroot_exec /usr/sbin/mkimage -A "${KERNEL_ARCH}" -T ramdisk -C none -n "initrd.img-${KERNEL_VERSION}" -d "/boot/firmware/initramfs-${KERNEL_VERSION}" "/boot/firmware/initramfs-${KERNEL_VERSION}.uboot"
+    chroot_exec /usr/sbin/mkimage -A "${KERNEL_ARCH}" -T ramdisk -C none -n "initrd.img-${KERNEL_VERSION}" -d "/boot/initrd.img-${KERNEL_VERSION}" "/boot/initrd.img-${KERNEL_VERSION}.uboot"
 
     # Remove original initramfs file
     rm -f "${BOOT_DIR}/initrd.img-${KERNEL_VERSION}"

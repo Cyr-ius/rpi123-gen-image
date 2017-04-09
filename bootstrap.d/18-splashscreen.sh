@@ -37,5 +37,3 @@ plymouth-set-default-theme -R kodibox
 EOF
 
 fi
-
-#ln -s /lib/systemd/system/ply-lite-start.service /lib/systemd/system/sysinit.target.wants

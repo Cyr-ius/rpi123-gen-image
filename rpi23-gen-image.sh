@@ -61,8 +61,7 @@ QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
 
 # URLs
 KERNEL_URL=${KERNEL_URL:=https://github.com/raspberrypi/linux}
-FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware/raw/master/boot}
-VC_URL=${VC_URL:=https://github.com/raspberrypi/firmware/archive/1.20161215.tar.gz}
+FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware}
 WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm}
 COLLABORA_URL=${COLLABORA_URL:=https://repositories.collabora.co.uk/debian}
 FBTURBO_URL=${FBTURBO_URL:=https://github.com/ssvb/xf86-video-fbturbo.git}
@@ -74,8 +73,17 @@ BUILDDIR="${BASEDIR}/build"
 # Prepare date string for default image file name
 DATE="$(date +%Y-%m-%d)"
 IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-rpi${RPI_MODEL}-${RELEASE}}
+
 #Cleaning building directories and files 
 RESET=${RESET:=false}
+
+# Make debian packages
+PACKAGE_KRNL=${PACKAGE_KRNL:=false}
+PACKAGE_USLD=${PACKAGE_USLD:=false}
+PACKAGE_SPSH=${PACKAGE_SPSH:=false}
+PACKAGE_PERFT=${PACKAGE_PERFT:=false}
+# Make packages and exit
+PACKAGE_ONLY=${PACKAGE_ONLY:=false}
 
 # Chroot directories
 R="${BUILDDIR}/chroot"
@@ -167,7 +175,6 @@ KERNEL_THREADS=${KERNEL_THREADS:=1}
 KERNEL_HEADERS=${KERNEL_HEADERS:=true}
 KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG:=false}
 KERNEL_REMOVESRC=${KERNEL_REMOVESRC:=true}
-KERNEL_PACKAGE=${KERNEL_PACKAGE:=false}
 KERNEL_INSTALLPACKAGES=${KERNEL_INSTALLPACKAGES:=false}
 
 # Kernel compilation from source directory settings
@@ -201,7 +208,7 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,sudo,systemd,sysvinit-utils,fake-hwclock,net-tools,bash-completion"
+APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,sudo,systemd,sysvinit-utils,fake-hwclock,net-tools,bash-completion,systemd-sysv,irqbalance"
 
 # Packages required for bootstrapping
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc psmisc dbus sudo"
@@ -209,6 +216,13 @@ MISSING_PACKAGES=""
 
 # Packages installed for c/c++ build environment in chroot (keep empty)
 COMPILER_PACKAGES=""
+
+# Clean all building folder
+if [ "$RESET" = true ]; then
+  [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
+  [ -d "custom.d/flags" ] && rm -rf custom.d/flags
+  [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}  
+fi
 
 set +x
 
@@ -368,6 +382,47 @@ if [ -e "$BUILDDIR" ] ; then
   #exit 1
 fi
 
+# Make Debian package for Firmware
+if [ ! -z $FIRMWARE_URL ] && [ -z "$RPI_FIRMWARE_DIR" ];then
+  RPI_FIRMWARE_DIR="$(pwd)/deb-packages/kbox-userland/firmware"
+  pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
+  chmod o+rw "${RPI_FIRMWARE_DIR}"
+  if [ "$PACKAGE_USLD" = true ]; then
+    pushd "$(pwd)/deb-packages/kbox-userland" 
+    . "./build.sh" # Buld package
+    popd
+  fi
+fi
+
+# Make Debian package for Kernel
+if [ ! -z $KERNEL_URL ] && [ -z "$KERNELSRC_DIR" ];then
+  KERNELSRC_DIR="$(pwd)/deb-packages/kbox-kernel/linux"
+  pull_source "${KERNEL_URL}" "${KERNELSRC_DIR}"
+  chmod o+rw "${KERNELSRC_DIR}"
+  if [ "$PACKAGE_KRNL" = true ]; then  
+    pushd "$(pwd)/deb-packages/kbox-kernel"
+    . "./build.sh" # Make kernel and build package
+    popd 
+  fi
+fi
+
+# Make Debian package for Splashscreen
+if [ "$PACKAGE_SPSH" = true ]; then  
+  pushd "$(pwd)/deb-packages/kbox-splashscreen"
+  . "./build.sh" # Make kernel and build package
+  popd 
+fi
+
+# Make Debian package for Perftune
+if [ "$PACKAGE_PERFT" = true ]; then  
+  pushd "$(pwd)/deb-packages/kbox-perftune"
+  . "./build.sh" # Make kernel and build package
+  popd 
+fi
+
+# if package only then exit
+[ "$PACKAGE_ONLY" = true ] && exit 0
+
 # Setup chroot directory
 mkdir -p "${R}"
 
@@ -464,19 +519,6 @@ if [ "$KERNEL_REDUCE" = true ] ; then
   KERNELSRC_CONFIG=false
 fi
 
-# Build kernel Package
-if [ "$KERNEL_PACKAGE" = true ]; then
-  . "./build-kernel-package.sh"
-  exit
-fi
-
-# Clean all building folder
-if [ "$RESET" = true ]; then
-  [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
-  [ -d "custom.d/flags" ] && rm -rf custom.d/flags
-  [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}
-fi
-
 # Execute bootstrap scripts
 mkdir -p "bootstrap.d/flags" && chmod o+rw "bootstrap.d/flags"
 for SCRIPT in bootstrap.d/*.sh; do
@@ -526,8 +568,8 @@ chroot_exec apt-get -y autoclean
 chroot_exec apt-get -y autoremove
 
 # Unmount mounted filesystems
-[ `grep -qs "${R}/proc" /proc/mounts` ] && umount -l "${R}/proc"
-[ `grep -qs "${R}/sys"  /proc/mounts` ] && umount -l "${R}/sys"
+[[ `grep "${R}/proc" /proc/mounts` ]] && umount -l "${R}/proc"
+[[ `grep "${R}/sys"  /proc/mounts` ]] && umount -l "${R}/sys"
 
 # Clean up directories
 rm -rf "${R}/run/*"

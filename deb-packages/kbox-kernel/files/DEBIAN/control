@@ -1,0 +1,11 @@
+Origin: KBox
+Package: kbox-linux
+Section: metapackages
+Essential: No
+Priority: required
+Architecture: armhf
+Maintainer: Cyr-ius <cyr-ius@ipocus.net>
+Description: Kernel for Raspberry Pi 2 metapackage
+Version: 4.9.20-v7+-1
+Depends: kbox-bootloader (=4.9.20-v7+), kbox-userland (=4.9.20-v7+), linux-firmware-image-4.9.20-v7+ (=4.9.20-v7+-1), linux-image-4.9.20-v7+ (=4.9.20-v7+-1), linux-libc-dev (=4.9.20-v7+-1)
+Installed-Size: 11

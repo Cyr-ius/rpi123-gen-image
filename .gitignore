@@ -1,10 +1,13 @@
 images
 custom.d
 packages
+kernel-packages
 *.swp
 *.bak
 *.log
 config
-linux-*
-firmware-*
+linux*
+firmware*
 bootstrap.d/flags
+deb-packages/kbox-userland/firmware
+deb-packages/kbox-kernel/linux

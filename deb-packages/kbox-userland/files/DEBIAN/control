@@ -1,0 +1,10 @@
+Origin: KBox
+Package: kbox-userland
+Section: libs
+Essential: No
+Priority: required
+Architecture: all
+Maintainer: Cyr-ius <cyr-ius@ipocus.net>
+Description: Raspberry Pi userland package
+Version: 4.9.20-v7+
+Installed-Size: 5716

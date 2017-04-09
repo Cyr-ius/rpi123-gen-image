@@ -1,0 +1,10 @@
+Origin: KBox
+Package: kbox-perftune
+Section: admin
+Essential: No
+Priority: required
+Architecture: all
+Maintainer: Cyr-ius <cyr-ius@ipocus.net>
+Description: Performance tuning tweaks for KBox
+Version: 1.0
+Installed-Size: 31

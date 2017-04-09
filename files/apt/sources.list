@@ -7,5 +7,6 @@ deb http://ftp.debian.org/debian/ jessie-updates main contrib
 deb http://security.debian.org/ jessie/updates main contrib
 #deb-src http://security.debian.org/ jessie/updates main contrib
 
-deb http://packages.ipocus.net nightly contrib
 deb http://packages.ipocus.net stable contrib
+deb http://packages.ipocus.net kernel contrib
+deb http://packages.ipocus.net unstable contrib

@@ -20,13 +20,13 @@ if [ "$BUILD_KERNEL" = true  ] ; then
     temp_dir=$(sudo -u nobody mktemp -d)
 
     # Install latest boot binaries from raspberry/firmware github
-    sudo -u nobody wget -q -O "${temp_dir}/bootcode.bin" "${FIRMWARE_URL}/bootcode.bin"
-    sudo -u nobody wget -q -O "${temp_dir}/fixup.dat" "${FIRMWARE_URL}/fixup.dat"
-    sudo -u nobody wget -q -O "${temp_dir}/fixup_cd.dat" "${FIRMWARE_URL}/fixup_cd.dat"
-    sudo -u nobody wget -q -O "${temp_dir}/fixup_x.dat" "${FIRMWARE_URL}/fixup_x.dat"
-    sudo -u nobody wget -q -O "${temp_dir}/start.elf" "${FIRMWARE_URL}/start.elf"
-    sudo -u nobody wget -q -O "${temp_dir}/start_cd.elf" "${FIRMWARE_URL}/start_cd.elf"
-    sudo -u nobody wget -q -O "${temp_dir}/start_x.elf" "${FIRMWARE_URL}/start_x.elf"
+    sudo -u nobody wget -q -O "${temp_dir}/boot/bootcode.bin" "${FIRMWARE_URL}/bootcode.bin"
+    sudo -u nobody wget -q -O "${temp_dir}/boot/fixup.dat" "${FIRMWARE_URL}/fixup.dat"
+    sudo -u nobody wget -q -O "${temp_dir}/boot/fixup_cd.dat" "${FIRMWARE_URL}/fixup_cd.dat"
+    sudo -u nobody wget -q -O "${temp_dir}/boot/fixup_x.dat" "${FIRMWARE_URL}/fixup_x.dat"
+    sudo -u nobody wget -q -O "${temp_dir}/boot/start.elf" "${FIRMWARE_URL}/start.elf"
+    sudo -u nobody wget -q -O "${temp_dir}/boot/start_cd.elf" "${FIRMWARE_URL}/start_cd.elf"
+    sudo -u nobody wget -q -O "${temp_dir}/boot/start_x.elf" "${FIRMWARE_URL}/start_x.elf"
 
     # Move downloaded boot binaries
     mv "${temp_dir}/"* "${BOOT_DIR}/"
@@ -101,13 +101,8 @@ fi
 
 # Setup boot with initramfs
 if [ "$ENABLE_INITRAMFS" = true ] ; then
-  if [ ! -z ${KERNEL_VERSION} ]; then
-    echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> "${BOOT_DIR}/config.txt"
-  else
-    PINITRD=$(ls ${BOOT_DIR}/initrd.img*)
-    INITRD=$(basename ${PINITRD})
-    echo "initramfs ${INITRD} followkernel" >> "${BOOT_DIR}/config.txt"
-  fi
+  KERNEL_VERSION=$(cat ${R}/boot/version)
+  echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> "${BOOT_DIR}/config.txt"
 fi
 
 # Disable RPi3 Bluetooth and restore ttyAMA0 serial device
@@ -166,13 +161,13 @@ install_readonly files/modules/raspi-blacklist.conf "${ETC_DIR}/modprobe.d/raspi
 # Install sysctl.d configuration files
 install_readonly files/sysctl.d/81-rpi-vm.conf "${ETC_DIR}/sysctl.d/81-rpi-vm.conf"
 
-if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
-  # Move downloaded firmware binary blob
-  cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
+#~ if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
+  #~ # Move downloaded firmware binary blob
+  #~ cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
 
-  # Install VC libraries
-  echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
-fi
+  #~ # Install VC libraries
+  #~ echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
+#~ fi
 
 # Install raspi-config
 install_deb raspi-config

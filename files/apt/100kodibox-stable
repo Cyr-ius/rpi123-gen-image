@@ -3,5 +3,9 @@ Pin: release o=kodi,a=stable
 Pin-Priority: 800
 
 Package: *
+Pin: release o=kodi,a=kernel 
+Pin-Priority: 800
+
+Package: *
 Pin: release o=kodi,a=unstable
 Pin-Priority: 100 

@@ -144,7 +144,7 @@ if [ ! -d kernel-packages ]; then
 
 		# Get kernel release version
 		KERNEL_VERSION=`cat "${KERNEL_DIR}/include/config/kernel.release"`
-		echo $KERNEL_VERSION > "${R}/boot/version"
+		install_readonly "${KERNEL_DIR}/include/config/kernel.release" "${R}/boot"
 
 		# Copy kernel configuration file to the boot directory
 		install_readonly "${KERNEL_DIR}/.config" "${R}/boot/config-${KERNEL_VERSION}"

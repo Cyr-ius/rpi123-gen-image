@@ -52,5 +52,6 @@ if [ -d packages ] ; then
     chroot_exec dpkg --unpack /tmp/$(basename $package)
   done
 fi
+#~ chroot_exec apt --fix-broken -qq -y --allow-unauthenticated install
 chroot_exec apt-get -qq -y -f install
 chroot_exec apt-get -qq -y check

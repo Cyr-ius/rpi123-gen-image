@@ -101,7 +101,7 @@ fi
 
 # Setup boot with initramfs
 if [ "$ENABLE_INITRAMFS" = true ] ; then
-  KERNEL_VERSION=$(cat ${R}/boot/version)
+  KERNEL_VERSION=$(cat ${R}/boot/kernel.release)
   echo "initramfs initrd.img-${KERNEL_VERSION} followkernel" >> "${BOOT_DIR}/config.txt"
 fi
 
@@ -161,13 +161,13 @@ install_readonly files/modules/raspi-blacklist.conf "${ETC_DIR}/modprobe.d/raspi
 # Install sysctl.d configuration files
 install_readonly files/sysctl.d/81-rpi-vm.conf "${ETC_DIR}/sysctl.d/81-rpi-vm.conf"
 
-#~ if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
-  #~ # Move downloaded firmware binary blob
-  #~ cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
+if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
+  # Move downloaded firmware binary blob
+  cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
 
-  #~ # Install VC libraries
-  #~ echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
-#~ fi
+  # Install VC libraries
+  echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
+fi
 
 # Install raspi-config
 install_deb raspi-config

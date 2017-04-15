@@ -1,0 +1,3 @@
+./kbox.plymouth /usr/share/plymouth/themes/kbox
+./kbox.script /usr/share/plymouth/themes/kbox
+./Splash.png /usr/share/plymouth/themes/kbox

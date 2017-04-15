@@ -98,11 +98,16 @@ while true; do
 		/usr/bin/setterm --cursor off >/dev/tty1
 		/usr/bin/clear >/dev/tty1
 		/bin/ply-image "$CODE"
+		#~ /sbin/plymouthd --tty=tty1 && /bin/plymouth --show-splash
+		#~ systemctl start plymouth-start.service
+		# /sbin/plymouthd --tty=tty1 && plymouth watch-keystroke --keys="\e" --command="plymouth quit"
 		read -n 1 -s -t 10 key </dev/tty1
 	fi
 	if [ "$key" = $'\e' -o "$GETTY" -eq 0 ]; then
 		/bin/fbset -depth 8 && /bin/fbset -depth 16
 		/usr/bin/setterm --cursor on >/dev/tty1
+		#~ /bin/plymouth --hide-splash
+		#~ /bin/plymouth quit
 		systemctl start getty@tty1
 		count=30
 		while [ $count -gt 0 ]; do

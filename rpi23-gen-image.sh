@@ -60,8 +60,8 @@ KERNEL_IMAGE=`[ ${RPI_MODEL} = 1 ] && echo kernel.img || echo kernel7.img`
 QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
 
 # URLs
-KERNEL_URL=${KERNEL_URL:=https://github.com/raspberrypi/linux}
-FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware}
+KERNEL_URL=${KERNEL_URL:=https://github.com/raspberrypi/linux.git}
+FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware.git}
 WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm}
 COLLABORA_URL=${COLLABORA_URL:=https://repositories.collabora.co.uk/debian}
 FBTURBO_URL=${FBTURBO_URL:=https://github.com/ssvb/xf86-video-fbturbo.git}
@@ -76,14 +76,6 @@ IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-rpi${RPI_MODEL}-${RELEASE}}
 
 #Cleaning building directories and files 
 RESET=${RESET:=false}
-
-# Make debian packages
-PACKAGE_KRNL=${PACKAGE_KRNL:=false}
-PACKAGE_USLD=${PACKAGE_USLD:=false}
-PACKAGE_SPSH=${PACKAGE_SPSH:=false}
-PACKAGE_PERFT=${PACKAGE_PERFT:=false}
-# Make packages and exit
-PACKAGE_ONLY=${PACKAGE_ONLY:=false}
 
 # Chroot directories
 R="${BUILDDIR}/chroot"
@@ -382,46 +374,19 @@ if [ -e "$BUILDDIR" ] ; then
   #exit 1
 fi
 
-# Make Debian package for Firmware
+# Pull Firmware source if url is not empty
 if [ ! -z $FIRMWARE_URL ] && [ -z "$RPI_FIRMWARE_DIR" ];then
-  RPI_FIRMWARE_DIR="$(pwd)/deb-packages/kbox-userland/firmware"
+  RPI_FIRMWARE_DIR="$(pwd)/firmware"
   pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
-  chmod o+rw "${RPI_FIRMWARE_DIR}"
-  if [ "$PACKAGE_USLD" = true ]; then
-    pushd "$(pwd)/deb-packages/kbox-userland" 
-    . "./build.sh" # Buld package
-    popd
-  fi
+  chmod ugo+rw "${RPI_FIRMWARE_DIR}"
 fi
 
-# Make Debian package for Kernel
+# Pull Kernel source if url is not empty
 if [ ! -z $KERNEL_URL ] && [ -z "$KERNELSRC_DIR" ];then
-  KERNELSRC_DIR="$(pwd)/deb-packages/kbox-kernel/linux"
+  KERNELSRC_DIR="$(pwd)/linux"
   pull_source "${KERNEL_URL}" "${KERNELSRC_DIR}"
-  chmod o+rw "${KERNELSRC_DIR}"
-  if [ "$PACKAGE_KRNL" = true ]; then  
-    pushd "$(pwd)/deb-packages/kbox-kernel"
-    . "./build.sh" # Make kernel and build package
-    popd 
-  fi
+  chmod ugo+rw "${KERNELSRC_DIR}"
 fi
-
-# Make Debian package for Splashscreen
-if [ "$PACKAGE_SPSH" = true ]; then  
-  pushd "$(pwd)/deb-packages/kbox-splashscreen"
-  . "./build.sh" # Make kernel and build package
-  popd 
-fi
-
-# Make Debian package for Perftune
-if [ "$PACKAGE_PERFT" = true ]; then  
-  pushd "$(pwd)/deb-packages/kbox-perftune"
-  . "./build.sh" # Make kernel and build package
-  popd 
-fi
-
-# if package only then exit
-[ "$PACKAGE_ONLY" = true ] && exit 0
 
 # Setup chroot directory
 mkdir -p "${R}"

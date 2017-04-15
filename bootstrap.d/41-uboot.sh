@@ -6,7 +6,7 @@
 . ./functions.sh
 
 #Get kernel version 
-KERNEL_VERSION=$(cat ${R}/boot/version)
+KERNEL_VERSION=$(cat ${R}/boot/kernel.release)
 
 # Fetch and build U-Boot bootloader
 if [ "$ENABLE_UBOOT" = true ] ; then

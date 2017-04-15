@@ -1,18 +1,15 @@
 #!/bin/bash
-
+pushd $(dirname "$0")
 . ../../functions.sh
-rm -rf kbox-*.deb  "$(pwd)/../../packages/kbox-*.deb"
 
-version="1.0.1"
-
-# Set version
-fix_version files/DEBIAN/control $version
+version="1.0.2"
+rm -rf kbox-* *-tmp
 
 #  Build package
-dpkg_build files/ kbox-splashscreen-$version.deb
-
-# Create packages repositorie
-mkdir -p "$(pwd)/../../packages"
-
-# Move packages
-mv -f kbox-*.deb "$(pwd)/../../packages"
+cp -r files files-tmp
+cd files-tmp
+sed "s/(1.0)/($version)/g" -i debian/changelog
+dpkg-buildpackage -us -uc
+cd ..
+rm -rf *-tmp
+popd

@@ -1,0 +1,11 @@
+Source: kbox-bootloader
+Section: kernel
+Priority: Required
+Maintainer: Cyr-ius <cyr-ius@ipocus.net>
+Build-Depends: debhelper (>= 8.0.0)
+Homepage: https://github.com/cyr-ius/rpi23-gen-image
+
+Package: kbox-bootloader
+Architecture: all
+Depends: ${misc:Depends}
+Description: Raspberry Pi Bootloader components

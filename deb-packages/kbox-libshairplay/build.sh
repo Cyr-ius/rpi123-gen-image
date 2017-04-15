@@ -1,14 +1,15 @@
 #!/bin/bash
 pushd $(dirname "$0")
 . ../../functions.sh
+URL="https://github.com/juhovh/shairplay.git"
+rm -rf raspi-config* *-tmp
 
-version="1.0"
-rm -rf kbox-* *-tmp
+pull_source "${URL}" "files-tmp"
 
 #  Build package
-cp -r files files-tmp
 cd files-tmp
-sed "s/(1.0)/($version)/g" -i debian/changelog
+./configure
+make
 dpkg-buildpackage -us -uc
 cd ..
 rm -rf *-tmp

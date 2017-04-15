@@ -6,7 +6,7 @@
 . ./functions.sh
 
 #Get kernel version 
-KERNEL_VERSION=$(cat ${R}/boot/version)
+KERNEL_VERSION=$(cat ${R}/boot/kernel.release)
 
 # Install and setup fstab
 install_readonly files/mount/fstab "${ETC_DIR}/fstab"

@@ -1,50 +1,51 @@
 #!/bin/bash
+pushd $(dirname "$0")
+. ./../../functions.sh
 
-rm -rf kbox-*.deb  "$(pwd)/../../packages/kbox-*.deb"
+URL="https://github.com/raspberrypi/firmware"
+
+#Clean folder
+rm -rf kbox-* *-tmp
+
+#Pull source
+pull_source "${URL}" firmware
 
 version="$(ls firmware/modules | sort -r | head -1)"
 
-fix_version files/DEBIAN/control $version
-fix_version files-dev/DEBIAN/control $version
-fix_version files-src/DEBIAN/control $version
-fix_version files-bootloader/DEBIAN/control $version
-
-sed '/Depends/d' -i files-dev/DEBIAN/control
-echo "Depends: kbox-userland (=${version})" >> files-dev/DEBIAN/control
-sed '/Depends/d' -i files-src/DEBIAN/control
-echo "Depends: kbox-userland (=${version})" >> files-src/DEBIAN/control
-
 if [ -d "firmware" ]; then
-mkdir -p files/opt/vc
-mkdir -p files-dev/opt/vc
-mkdir -p files-src/opt/vc
-mkdir -p files-bootloader/boot
-cp -ar firmware/hardfp/opt/vc/bin/ files/opt/vc
-cp -ar firmware/hardfp/opt/vc/lib files/opt/vc
-cp -ar firmware/hardfp/opt/vc/include files-dev/opt/vc
-cp -ar firmware/hardfp/opt/vc/src files-src/opt/vc
 
-cp firmware/boot/bootcode.bin files-bootloader/boot
-cp firmware/boot/fixup.dat files-bootloader/boot
-cp firmware/boot/fixup_cd.dat files-bootloader/boot
-cp firmware/boot/fixup_x.dat files-bootloader/boot
-cp firmware/boot/start.elf files-bootloader/boot
-cp firmware/boot/start_cd.elf files-bootloader/boot
-cp firmware/boot/start_x.elf files-bootloader/boot
+#  Build package
+cp -r files files-tmp
+cd files-tmp
+sed "s/(1.0)/($version)/g" -i debian/changelog
+dpkg-buildpackage -us -uc
+cd ..
 
-dpkg_build files/ kbox-userland-$version.deb
-dpkg_build files-dev/ kbox-userland-dev-$version.deb
-dpkg_build files-src/ kbox-userland-src-$version.deb
-dpkg_build files-bootloader/ kbox-bootloader-$version.deb
+cp -r files-dev files-dev-tmp
+cd files-dev-tmp
+sed '/Depends/d' -i debian/control
+echo "Depends: \${misc:Depends}, kbox-userland (=${version})" >> debian/control
+sed "s/(1.0)/($version)/g" -i debian/changelog
+dpkg-buildpackage -us -uc
+cd ..
 
-# Create packages repositorie
-mkdir -p "$(pwd)/../../packages"
+cp -r files-src files-src-tmp
+cd files-src-tmp
+sed '/Depends/d' -i debian/control
+echo "Depends: \${misc:Depends}, kbox-userland (=${version})" >> debian/control
+sed "s/(1.0)/($version)/g" -i debian/changelog
+dpkg-buildpackage -us -uc
+cd ..
 
-# Move packages
-mv -f kbox-*.deb "$(pwd)/../../packages"
+cp -r files-bootloader files-bootloader-tmp
+cd files-bootloader-tmp
+sed "s/(1.0)/($version)/g" -i debian/changelog
+dpkg-buildpackage -us -uc
+cd ..
 
-rm -rf files/opt files-dev/opt files-src/opt files-bootloader/boot
+rm -rf *-tmp
 
 else
  echo "Firmware folder not exist"
 fi
+popd

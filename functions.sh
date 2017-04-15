@@ -128,7 +128,8 @@ pull_source() {
 	if [[ $1 =~ git ]]; then
           echo -e "Detected Git source"
           if [[ "$3" =~ "clean" ]]; then rm -rf ${2};fi
-          git clone  ${1} ${2} --depth 1 || if [ $RESET = false ];then return; fi
+          git clone  ${1} ${2} --depth 1 || if [ "$RESET" = "false" ]; then return; fi
+          echo -e "Detected Git update"
           pushd ${2}
           git clean -xfd ; git checkout -- * ; git pull ;
           popd

@@ -22,7 +22,7 @@ if [ ! -d kernel-packages ]; then
 		# Copy kernel and modules
 		cp -r "${RPI_FIRMWARE_DIR}/boot" "${R}"
 		cp -r "${RPI_FIRMWARE_DIR}/modules" "${R}/lib"
-		exit
+		return
 	fi     
 
 	# Fetch and build latest raspberry kernel

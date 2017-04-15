@@ -95,7 +95,7 @@ dpkg_build() {
 	dpkg -b "$1" "$2"
 }
 pull_source() {
-	if [[ $1 =~ \.zip$ ]];	then
+	if [[ $1 =~ \.zip$ ]]; then
           echo -e "Detected ZIP source"
           rm -rf ${2}
           if [ "$2" != "." ]; then mkdir -p ${2}; fi

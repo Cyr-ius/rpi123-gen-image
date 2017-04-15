@@ -87,6 +87,9 @@ Set default system timezone. All available timezones can be found in the `/usr/s
 ##### `EXPANDROOT`=true
 Expand the root partition and filesystem automatically on first boot.
 
+##### `RESET`=true
+Reset all flags , the setting of a flag avoids replaying the step.
+
 ---
 
 #### Keyboard settings:
@@ -183,6 +186,12 @@ Install Xorg open-source X Window System.
 
 ##### `ENABLE_WM`=""
 Install a user defined window manager for the X Window System. To make sure all X related package dependencies are getting installed `ENABLE_XORG` will automatically get enabled if `ENABLE_WM` is used. The `rpi23-gen-image.sh` script has been tested with the following list of window managers: `blackbox`, `openbox`, `fluxbox`, `jwm`, `dwm`, `xfce4`, `awesome`.
+
+##### `ENABLE_SPLASHSCREEN`=true
+Install and enable plymouth with Kbox Theme.
+
+##### `ENABLE_KODI`=true
+Install and enable Kodi at the system startup.
 
 ---
 
@@ -359,6 +368,7 @@ The functions of this script that are required for the different stages of the b
 | `13-kernel.sh` | Build and install RPi2/3 Kernel |
 | `14-fstab.sh` | Setup fstab and initramfs |
 | `15-rpi-config.sh` | Setup RPi2/3 config and cmdline |
+| `18-splashscreen.sh`  | Setup plymouth  |
 | `20-networking.sh` | Setup Networking |
 | `21-firewall.sh` | Setup Firewall |
 | `30-security.sh` | Setup Users and Security settings |
@@ -367,6 +377,8 @@ The functions of this script that are required for the different stages of the b
 | `41-uboot.sh` | Build and Setup U-Boot |
 | `42-fbturbo.sh` | Build and Setup fbturbo Xorg driver |
 | `50-firstboot.sh` | First boot actions |
+| `95-kodi.sh`  | Install and Setup Kodi (mediancenter)  |
+| `98-customize.sh`  | Performance and bug's fix  |
 | `99-reduce.sh` | Reduce the disk space usage |
 
 All the required configuration files that will be copied to the generated OS image are located inside the `files` directory. It is not recommended to modify these configuration files manually.
@@ -375,15 +387,18 @@ All the required configuration files that will be copied to the generated OS ima
 | --- | --- |
 | `apt` | APT management configuration files |
 | `boot` | Boot and RPi2/3 configuration files |
+| `customize` | Configuration files |
 | `dpkg` | Package Manager configuration |
 | `etc` | Configuration files and rc scripts |
 | `firstboot` | Scripts that get executed on first boot  |
 | `initramfs` | Initramfs scripts |
 | `iptables` | Firewall configuration files |
+| `kodi` | Configuration files for kodi |
 | `locales` | Locales configuration |
 | `modules` | Kernel Modules configuration |
 | `mount` | Fstab configuration |
 | `network` | Networking configuration files |
+| `splashscreen` | KBox Theme files |
 | `sysctl.d` | Swapping and Network Hardening configuration |
 | `xorg` | fbturbo Xorg driver configuration |
 
@@ -412,6 +427,20 @@ If you have set `ENABLE_SPLITFS`, copy the `-frmw` image on the microSD card, th
 bmaptool copy ./images/jessie/2017-01-23-rpi3-jessie-frmw.img /dev/mmcblk0
 bmaptool copy ./images/jessie/2017-01-23-rpi3-jessie-root.img /dev/sdc
 ```
+## Building debian packages
+To facilitate system maintenance. It is possible to create debian packages for the kernel and the user environment.
+To do this, simply run the build script in the directory deb-packages
+```shell
+./deb-ackages/kbox-kernel/build.sh
+./deb-ackages/kbox-userland/build.sh
+./deb-ackages/kbox-splashscreen/build.sh
+```
+| Directory | Description |
+| --- | --- |
+| `kbox-kernel` | Build packages for Linux kernel |
+| `kbox-userland` | Build the package that contains the raspberry firmware |
+| `kbox-splashscreen` | Build the Spalshscreen package |
+
 
 ## External links and references
 * [Debian worldwide mirror sites](https://www.debian.org/mirror/list)

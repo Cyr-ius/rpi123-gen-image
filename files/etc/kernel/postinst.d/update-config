@@ -7,5 +7,5 @@ fi
 echo $version > /boot/kernel.release
 
 # remove old kernel
-x=$(dpkg --list | egrep -i --color 'linux-image|linux-headers|linux-firmware-image' | grep ^rc | awk '{print $2}')
-apt-get --purge remove $x
+#x=$(dpkg --list | egrep -i --color 'linux-image|linux-headers|linux-firmware-image' | grep ^rc | awk '{print $2}')
+#apt-get --purge remove $x

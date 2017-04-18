@@ -6,15 +6,15 @@
 . ./functions.sh
 
 if [ "$BUILD_KERNEL" = true  ] ; then
-  if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
+  if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ]; then
     # Install boot binaries from local directory
-    cp ${RPI_FIRMWARE_DIR}/boot/bootcode.bin ${BOOT_DIR}/bootcode.bin
-    cp ${RPI_FIRMWARE_DIR}/boot/fixup.dat ${BOOT_DIR}/fixup.dat
-    cp ${RPI_FIRMWARE_DIR}/boot/fixup_cd.dat ${BOOT_DIR}/fixup_cd.dat
-    cp ${RPI_FIRMWARE_DIR}/boot/fixup_x.dat ${BOOT_DIR}/fixup_x.dat
-    cp ${RPI_FIRMWARE_DIR}/boot/start.elf ${BOOT_DIR}/start.elf
-    cp ${RPI_FIRMWARE_DIR}/boot/start_cd.elf ${BOOT_DIR}/start_cd.elf
-    cp ${RPI_FIRMWARE_DIR}/boot/start_x.elf ${BOOT_DIR}/start_x.elf
+    [ ! -f "${BOOT_DIR}/bootcode.bin" ] && cp ${RPI_FIRMWARE_DIR}/boot/bootcode.bin ${BOOT_DIR}/bootcode.bin
+    [ ! -f "${BOOT_DIR}/fixup.dat" ] && cp ${RPI_FIRMWARE_DIR}/boot/fixup.dat ${BOOT_DIR}/fixup.dat
+    [ ! -f "${BOOT_DIR}/fixup_cd.dat" ] && cp ${RPI_FIRMWARE_DIR}/boot/fixup_cd.dat ${BOOT_DIR}/fixup_cd.dat
+    [ ! -f "${BOOT_DIR}/fixup_x.dat" ] && cp ${RPI_FIRMWARE_DIR}/boot/fixup_x.dat ${BOOT_DIR}/fixup_x.dat
+    [ ! -f "${BOOT_DIR}/start.elf" ] && cp ${RPI_FIRMWARE_DIR}/boot/start.elf ${BOOT_DIR}/start.elf
+    [ ! -f "${BOOT_DIR}/start_cd.elf" ] && cp ${RPI_FIRMWARE_DIR}/boot/start_cd.elf ${BOOT_DIR}/start_cd.elf
+    [ ! -f "${BOOT_DIR}/start_x.elf" ] && cp ${RPI_FIRMWARE_DIR}/boot/start_x.elf ${BOOT_DIR}/start_x.elf
   else
     # Create temporary directory for boot binaries
     temp_dir=$(sudo -u nobody mktemp -d)
@@ -168,9 +168,6 @@ if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
   # Install VC libraries
   echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
 fi
-
-# Install raspi-config
-install_deb raspi-config
 
 # Install rules for udev
 install_readonly files/etc/udev/rules.d/* "${ETC_DIR}/udev/rules.d/"

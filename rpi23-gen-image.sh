@@ -52,8 +52,8 @@ RPI3_UBOOT_CONFIG=${RPI3_UBOOT_CONFIG:=rpi_3_32b_defconfig}
 # Debian release
 RELEASE=${RELEASE:=jessie}
 KERNEL_ARCH=${KERNEL_ARCH:=arm}
-RELEASE_ARCH=${RELEASE_ARCH:=armhf}
-CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf-}
+RELEASE_ARCH=`[ ${RPI_MODEL} = 1 ] && echo armel || echo armhf`
+CROSS_COMPILE=`[ ${RPI_MODEL} = 1 ] && echo arm-linux-gnueabi- || echo arm-linux-gnueabihf-`
 COLLABORA_KERNEL=${COLLABORA_KERNEL:=3.18.0-trunk-rpi2}
 KERNEL_DEFCONFIG=`[ ${RPI_MODEL} = 1 ] && echo bcmrpi_defconfig || echo bcm2709_defconfig`
 KERNEL_IMAGE=`[ ${RPI_MODEL} = 1 ] && echo kernel.img || echo kernel7.img`
@@ -74,8 +74,11 @@ BUILDDIR="${BASEDIR}/build"
 DATE="$(date +%Y-%m-%d)"
 IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-rpi${RPI_MODEL}-${RELEASE}}
 
-#Cleaning building directories and files 
+#Cleaning building directories and files flags
 RESET=${RESET:=false}
+
+#Cleaning flags
+CLEAN=${CLEAN:=false}
 
 # Chroot directories
 R="${BUILDDIR}/chroot"
@@ -209,14 +212,23 @@ MISSING_PACKAGES=""
 # Packages installed for c/c++ build environment in chroot (keep empty)
 COMPILER_PACKAGES=""
 
-# Clean all building folder
+set +x
+
+# Reset all flags and building folder
 if [ "$RESET" = true ]; then
   [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
   [ -d "custom.d/flags" ] && rm -rf custom.d/flags
+  [ -d "linux" ] && rm -rf ${BUILDDIR}  
+  [ -d "firmware" ] && rm -rf ${BUILDDIR}  
   [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}  
 fi
 
-set +x
+# Reset all flags
+if [ "$CLEAN" = true ]; then
+  [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
+  [ -d "custom.d/flags" ] && rm -rf custom.d/flags
+  [ -d "${BUILDDIR}/chroot" ] && rm -rf "${BUILDDIR}/chroot"
+fi
 
 # Set Raspberry Pi model specific configuration
 if [ "$RPI_MODEL" = 1 ] ; then
@@ -485,19 +497,27 @@ if [ "$KERNEL_REDUCE" = true ] ; then
 fi
 
 # Execute bootstrap scripts
-mkdir -p "bootstrap.d/flags" && chmod o+rw "bootstrap.d/flags"
+mkdir -p "bootstrap.d/flags"
+chmod o+rw "bootstrap.d/flags"
 for SCRIPT in bootstrap.d/*.sh; do
   head -n 3 "$SCRIPT"
   FLAG=$(basename "$SCRIPT")
-    [ ! -f "bootstrap.d/flags/${FLAG%.*}" ] && . "$SCRIPT" && touch "bootstrap.d/flags/${FLAG%.*}"
+  if [ ! -f "bootstrap.d/flags/${FLAG%.*}" ]; then
+    . "$SCRIPT"
+    touch "bootstrap.d/flags/${FLAG%.*}"
+  fi
 done
 
 ## Execute custom bootstrap scripts
-mkdir -p "custom.d/flags" && chmod o+rw "custom.d/flags"
+mkdir -p "custom.d/flags"
+chmod o+rw "custom.d/flags"
 if [ -d "custom.d" ] ; then
   for SCRIPT in custom.d/*.sh; do
     FLAG=$(basename "$SCRIPT")
-    [ ! -f "custom.d/flags/${FLAG%.*}" ] && . "$SCRIPT" && touch "custom.d/flags/${FLAG%.*}"
+    if [ ! -f "custom.d/flags/${FLAG%.*}" ]; then
+      . "$SCRIPT"
+      touch "custom.d/flags/${FLAG%.*}"
+    fi
   done
 fi
 

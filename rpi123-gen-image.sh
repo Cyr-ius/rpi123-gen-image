@@ -40,30 +40,24 @@ set -e
 echo -n -e "\n#\n# RPi2/3 Bootstrap Settings\n#\n"
 set -x
 
-# Raspberry Pi model configuration
+# Default Raspberry Pi model configuration
 RPI_MODEL=${RPI_MODEL:=2}
-RPI1_DTB_FILE=${RPI1_DTB_FILE:=bcm2708-rpi-b-plus.dtb}
-RPI1_UBOOT_CONFIG=${RPI1_UBOOT_CONFIG:=rpi_defconfig}
-RPI2_DTB_FILE=${RPI2_DTB_FILE:=bcm2709-rpi-2-b.dtb}
-RPI2_UBOOT_CONFIG=${RPI2_UBOOT_CONFIG:=rpi_2_defconfig}
-RPI3_DTB_FILE=${RPI3_DTB_FILE:=bcm2710-rpi-3-b.dtb}
-RPI3_UBOOT_CONFIG=${RPI3_UBOOT_CONFIG:=rpi_3_32b_defconfig}
+if [[ ! "$RPI_MODEL" =~ "1"|"2"|"3"|"3_64" ]];then
+  echo "error: Raspberry Pi model ${RPI_MODEL} is not supported!"
+  exit 1
+else
+  build_env rbp$RPI_MODEL
+fi
 
 # Debian release
-RELEASE=${RELEASE:=jessie}
-KERNEL_ARCH=${KERNEL_ARCH:=arm}
-RELEASE_ARCH=`[ ${RPI_MODEL} = 1 ] && echo armel || echo armhf`
-CROSS_COMPILE=`[ ${RPI_MODEL} = 1 ] && echo arm-linux-gnueabi- || echo arm-linux-gnueabihf-`
-COLLABORA_KERNEL=${COLLABORA_KERNEL:=3.18.0-trunk-rpi2}
-KERNEL_DEFCONFIG=`[ ${RPI_MODEL} = 1 ] && echo bcmrpi_defconfig || echo bcm2709_defconfig`
-KERNEL_IMAGE=`[ ${RPI_MODEL} = 1 ] && echo kernel.img || echo kernel7.img`
+RELEASE=${RELEASE:=stretch}
 QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
 
 # URLs
 KERNEL_URL=${KERNEL_URL:=https://github.com/raspberrypi/linux.git}
 FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware.git}
+TOOLS_URL=${TOOLS_URL:=https://github.com/raspberrypi/tools.git}
 WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm}
-COLLABORA_URL=${COLLABORA_URL:=https://repositories.collabora.co.uk/debian}
 FBTURBO_URL=${FBTURBO_URL:=https://github.com/ssvb/xf86-video-fbturbo.git}
 UBOOT_URL=${UBOOT_URL:=git://git.denx.de/u-boot.git}
 
@@ -90,6 +84,7 @@ WLAN_FIRMWARE_DIR="${R}/lib/firmware/brcm"
 
 # Firmware directory: Blank if download from github
 RPI_FIRMWARE_DIR=${RPI_FIRMWARE_DIR:=""}
+TOOLS_DIR=${TOOLS_DIR:=""}
 
 # General settings
 HOSTNAME=${HOSTNAME:=rpi${RPI_MODEL}-${RELEASE}}
@@ -162,9 +157,11 @@ ENABLE_SPLITFS=${ENABLE_SPLITFS:=false}
 ENABLE_INITRAMFS=${ENABLE_INITRAMFS:=false}
 ENABLE_IFNAMES=${ENABLE_IFNAMES:=true}
 DISABLE_UNDERVOLT_WARNINGS=${DISABLE_UNDERVOLT_WARNINGS:=}
+CREATE_TARBALL=${CREATE_TARBALL:=false}
+CREATE_NOOBS=${CREATE_NOOBS:=false}
 
 # Kernel compilation settings
-BUILD_KERNEL=${BUILD_KERNEL:=false}
+BUILD_KERNEL=${BUILD_KERNEL:=true}
 KERNEL_REDUCE=${KERNEL_REDUCE:=false}
 KERNEL_THREADS=${KERNEL_THREADS:=1}
 KERNEL_HEADERS=${KERNEL_HEADERS:=true}
@@ -203,7 +200,7 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,sudo,systemd,sysvinit-utils,fake-hwclock,net-tools,bash-completion,systemd-sysv,irqbalance"
+APT_INCLUDES="${APT_INCLUDES} apt-transport-https apt-utils ca-certificates debian-archive-keyring dialog sudo systemd sysvinit-utils fake-hwclock net-tools bash-completion systemd-sysv"
 
 # Packages required for bootstrapping
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc psmisc dbus sudo"
@@ -214,36 +211,21 @@ COMPILER_PACKAGES=""
 
 set +x
 
-# Reset all flags and building folder
+# Clean all flags, building folder and sources
 if [ "$RESET" = true ]; then
   [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
   [ -d "custom.d/flags" ] && rm -rf custom.d/flags
-  [ -d "linux" ] && rm -rf ${BUILDDIR}  
-  [ -d "firmware" ] && rm -rf ${BUILDDIR}  
+  [ -d "linux" ] && rm -rf linux
+  [ -d "firmware" ] && rm -rf firmware
+  [ -d "tools" ] && rm -rf tools
   [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}  
 fi
 
-# Reset all flags
+# Clean all flags  and building folder
 if [ "$CLEAN" = true ]; then
   [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
   [ -d "custom.d/flags" ] && rm -rf custom.d/flags
   [ -d "${BUILDDIR}/chroot" ] && rm -rf "${BUILDDIR}/chroot"
-fi
-
-# Set Raspberry Pi model specific configuration
-if [ "$RPI_MODEL" = 1 ] ; then
-  DTB_FILE=${RPI1_DTB_FILE}
-  UBOOT_CONFIG=${RPI1_UBOOT_CONFIG}
-elif [ "$RPI_MODEL" = 2 ] ; then
-  DTB_FILE=${RPI2_DTB_FILE}
-  UBOOT_CONFIG=${RPI2_UBOOT_CONFIG}
-elif [ "$RPI_MODEL" = 3 ] ; then
-  DTB_FILE=${RPI3_DTB_FILE}
-  UBOOT_CONFIG=${RPI3_UBOOT_CONFIG}
-  BUILD_KERNEL=true
-else
-  echo "error: Raspberry Pi model ${RPI_MODEL} is not supported!"
-  exit 1
 fi
 
 # Check if the internal wireless interface is supported by the RPi model
@@ -260,14 +242,9 @@ if [ ! -z "$DISABLE_UNDERVOLT_WARNINGS" ] ; then
   fi
 fi
 
-# Build RPi2/3 Linux kernel if required by Debian release
-if [ "$RELEASE" = "stretch" ] ; then
-  BUILD_KERNEL=true
-fi
-
 # Add packages required for kernel cross compilation
 if [ "$BUILD_KERNEL" = true ] ; then
-  REQUIRED_PACKAGES="${REQUIRED_PACKAGES} crossbuild-essential-armhf"
+  REQUIRED_PACKAGES="${REQUIRED_PACKAGES} crossbuild-essential-armhf crossbuild-essential-armel crossbuild-essential-arm64"
 fi
 
 # Add libncurses5 to enable kernel menuconfig
@@ -280,11 +257,25 @@ if [ "$DISABLE_FBI" = true ] ; then
   ENABLE_CRYPTFS=true
 fi
 
+# Add fbturbo video driver
+if [ "$ENABLE_FBTURBO" = true ] ; then
+  # Enable xorg package dependencies
+  ENABLE_XORG=true
+fi
+
+# Configure kernel sources if no KERNELSRC_DIR
+if [ "$BUILD_KERNEL" = true ] && [ -z "$KERNELSRC_DIR" ] ; then
+  KERNELSRC_CONFIG=true
+fi
+
+# Configure reduced kernel
+if [ "$KERNEL_REDUCE" = true ] ; then
+  KERNELSRC_CONFIG=false
+fi
+
 # Add cryptsetup package to enable filesystem encryption
 if [ "$ENABLE_CRYPTFS" = true ]  && [ "$BUILD_KERNEL" = true ] ; then
   REQUIRED_PACKAGES="${REQUIRED_PACKAGES} cryptsetup"
-  APT_INCLUDES="${APT_INCLUDES},cryptsetup"
-
   if [ -z "$CRYPTFS_PASSWORD" ] ; then
     echo "error: no password defined (CRYPTFS_PASSWORD)!"
     exit 1
@@ -292,14 +283,94 @@ if [ "$ENABLE_CRYPTFS" = true ]  && [ "$BUILD_KERNEL" = true ] ; then
   ENABLE_INITRAMFS=true
 fi
 
+# Add cryptsetup package to enable filesystem encryption
+if [ "$ENABLE_CRYPTFS" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} cryptsetup busybox"
+fi
+
 # Add initramfs generation tools
-if [ "$ENABLE_INITRAMFS" = true ] && [ "$BUILD_KERNEL" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},initramfs-tools"
+if [ "$ENABLE_INITRAMFS" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} initramfs-tools"
 fi
 
 # Add device-tree-compiler required for building the U-Boot bootloader
 if [ "$ENABLE_UBOOT" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},device-tree-compiler"
+  APT_INCLUDES="${APT_INCLUDES} device-tree-compiler"
+fi
+
+# Add required packages for the minbase installation
+if [ "$ENABLE_MINBASE" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} vim-tiny netbase net-tools ifupdown"
+fi
+
+# Add required locales packages
+if [ "$DEFLOCAL" != "en_US.UTF-8" ] ; then
+  APT_INCLUDES="${APT_INCLUDES} locales keyboard-configuration console-setup"
+fi
+
+# Add parted package, required to get partprobe utility
+if [ "$EXPANDROOT" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} parted cloud-guest-utils"
+fi
+
+# Add dbus package, recommended if using systemd
+if [ "$ENABLE_DBUS" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} dbus"
+fi
+
+# Add iptables IPv4/IPv6 package
+if [ "$ENABLE_IPTABLES" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} iptables"
+fi
+
+# Add openssh server package
+if [ "$ENABLE_SSHD" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} openssh-server"
+fi
+
+# Add alsa-utils package
+if [ "$ENABLE_SOUND" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} alsa-utils"
+fi
+
+# Add rng-tools package
+if [ "$ENABLE_HWRANDOM" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} rng-tools"
+fi
+
+# Add user defined window manager package
+if [ -n "$ENABLE_WM" ] ; then
+  APT_INCLUDES="${APT_INCLUDES} ${ENABLE_WM}"
+  # Enable xorg package dependencies
+  ENABLE_XORG=true
+fi
+
+# Add xorg package
+if [ "$ENABLE_XORG" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} xorg"
+fi
+
+# Add plymouth & plymouth's theme package
+if [ "$ENABLE_SPLASHSCREEN" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} plymouth plymouth-themes"
+fi
+
+# Add Kodi package
+if [ "$ENABLE_KODI" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-pvr-* kodi-visualization-* kodi-audiodecoder-* kodi-audioencoder-* kodi-inputstream-* policykit-1"
+fi
+
+# Replace selected packages with smaller clones
+if [ "$ENABLE_REDUCE" = true ] ; then
+  # Add levee package instead of vim-tiny
+  if [ "$REDUCE_VIM" = true ] ; then
+    APT_INCLUDES="$(echo ${APT_INCLUDES} | sed "s/vim-tiny/levee/")"
+  fi
+
+  # Add dropbear package instead of openssh-server
+  if [ "$REDUCE_SSHD" = true ] ; then
+    APT_INCLUDES="$(echo ${APT_INCLUDES} | sed "s/openssh-server/dropbear/")"
+  fi
 fi
 
 # Check if root SSH (v2) public key file exists
@@ -400,6 +471,13 @@ if [ ! -z $KERNEL_URL ] && [ -z "$KERNELSRC_DIR" ];then
   chmod ugo+rw "${KERNELSRC_DIR}"
 fi
 
+# Pull Tools source if url is not empty
+if [ ! -z $TOOLS_URL ] && [ -z "$TOOLS_DIR" ];then
+  TOOLS_DIR="$(pwd)/tools"
+  pull_source "${TOOLS_URL}" "${TOOLS_DIR}"
+  chmod ugo+rw "${TOOLS_DIR}"
+fi
+
 # Setup chroot directory
 mkdir -p "${R}"
 
@@ -414,88 +492,6 @@ set -x
 # Call "cleanup" function on various signals and errors
 trap cleanup 0 1 2 3 6
 
-# Add required packages for the minbase installation
-if [ "$ENABLE_MINBASE" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},vim-tiny,netbase,net-tools,ifupdown"
-fi
-
-# Add required locales packages
-if [ "$DEFLOCAL" != "en_US.UTF-8" ] ; then
-  APT_INCLUDES="${APT_INCLUDES},locales,keyboard-configuration,console-setup"
-fi
-
-# Add parted package, required to get partprobe utility
-if [ "$EXPANDROOT" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},parted"
-fi
-
-# Add dbus package, recommended if using systemd
-if [ "$ENABLE_DBUS" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},dbus"
-fi
-
-# Add iptables IPv4/IPv6 package
-if [ "$ENABLE_IPTABLES" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},iptables"
-fi
-
-# Add openssh server package
-if [ "$ENABLE_SSHD" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},openssh-server"
-fi
-
-# Add alsa-utils package
-if [ "$ENABLE_SOUND" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},alsa-utils"
-fi
-
-# Add rng-tools package
-if [ "$ENABLE_HWRANDOM" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},rng-tools"
-fi
-
-# Add fbturbo video driver
-if [ "$ENABLE_FBTURBO" = true ] ; then
-  # Enable xorg package dependencies
-  ENABLE_XORG=true
-fi
-
-# Add user defined window manager package
-if [ -n "$ENABLE_WM" ] ; then
-  APT_INCLUDES="${APT_INCLUDES},${ENABLE_WM}"
-
-  # Enable xorg package dependencies
-  ENABLE_XORG=true
-fi
-
-# Add xorg package
-if [ "$ENABLE_XORG" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},xorg"
-fi
-
-# Replace selected packages with smaller clones
-if [ "$ENABLE_REDUCE" = true ] ; then
-  # Add levee package instead of vim-tiny
-  if [ "$REDUCE_VIM" = true ] ; then
-    APT_INCLUDES="$(echo ${APT_INCLUDES} | sed "s/vim-tiny/levee/")"
-  fi
-
-  # Add dropbear package instead of openssh-server
-  if [ "$REDUCE_SSHD" = true ] ; then
-    APT_INCLUDES="$(echo ${APT_INCLUDES} | sed "s/openssh-server/dropbear/")"
-  fi
-fi
-
-# Configure kernel sources if no KERNELSRC_DIR
-if [ "$BUILD_KERNEL" = true ] && [ -z "$KERNELSRC_DIR" ] ; then
-  KERNELSRC_CONFIG=true
-fi
-
-# Configure reduced kernel
-if [ "$KERNEL_REDUCE" = true ] ; then
-  KERNELSRC_CONFIG=false
-fi
-
 # Execute bootstrap scripts
 mkdir -p "bootstrap.d/flags"
 chmod o+rw "bootstrap.d/flags"
@@ -508,10 +504,10 @@ for SCRIPT in bootstrap.d/*.sh; do
   fi
 done
 
-## Execute custom bootstrap scripts
+# Execute custom bootstrap scripts
 mkdir -p "custom.d/flags"
 chmod o+rw "custom.d/flags"
-if [ -d "custom.d" ] ; then
+if [ -d "custom.d" ]; then
   for SCRIPT in custom.d/*.sh; do
     FLAG=$(basename "$SCRIPT")
     if [ ! -f "custom.d/flags/${FLAG%.*}" ]; then
@@ -574,12 +570,36 @@ rm -f "${R}/initrd.img"
 rm -f "${R}/vmlinuz"
 rm -f "${R}${QEMU_BINARY}"
 
+#Create TAR Filesystem
+if [ "$CREATE_TARBALL" = true ] ; then
+	create_fs_tarball "${R}" "${HOSTNAME}-rpi${RPI_MODEL}-filesystem"
+fi
+
+#Create NOOBS Installer
+if [ "$CREATE_NOOBS" = true ] ; then
+	pushd "${R}/boot" 
+	UNC_TS_SIZE_BOOT=$(du -h --max-depth=0 . | awk {'print $1'} | tr -d 'M')
+	echo "noobs" > vendor
+	tar -cf - * | xz -9 -c - > boot-${HOSTNAME}.tar.xz
+	mv root-${1}.tar.xz "${BASEDIR}/noobs"
+	popd
+
+	pushd "${R}" 
+	UNC_TS_SIZE_ROOT=$(du -h --max-depth=0 . | awk {'print $1'} | tr -d 'M')
+	tar -cf - * | xz -9 -c - > root-${HOSTNAME}.tar.xz
+	popd
+
+	sed -e s/UNC_TS_SIZE_BOOT/${UNC_TS_SIZE_BOOT}/ -i noobs/partitions-pi${RPI_MODEL}.json
+	sed -e s/UNC_TS_SIZE_ROOT/${UNC_TS_SIZE_ROOT}/ -i noobs/partitions-pi${RPI_MODEL}.json
+fi
+
+
 # Calculate size of the chroot directory in KB
 CHROOT_SIZE=$(expr `du -s "${R}" | awk '{ print $1 }'`)
 
 # Calculate the amount of needed 512 Byte sectors
 TABLE_SECTORS=$(expr 1 \* 1024 \* 1024 \/ 512)
-FRMW_SECTORS=$(expr 64 \* 1024 \* 1024 \/ 512)
+FRMW_SECTORS=$(expr 128 \* 1024 \* 1024 \/ 512)
 ROOT_OFFSET=$(expr ${TABLE_SECTORS} + ${FRMW_SECTORS})
 
 # The root partition is EXT4
@@ -608,7 +628,7 @@ ${TABLE_SECTORS},${ROOT_SECTORS},83
 EOM
 
   # Setup temporary loop devices
-  FRMW_LOOP="$(losetup -o 1M --sizelimit 64M -f --show $IMAGE_NAME-frmw.img)"
+  FRMW_LOOP="$(losetup -o 1M --sizelimit 128M -f --show $IMAGE_NAME-frmw.img)"
   ROOT_LOOP="$(losetup -o 1M -f --show $IMAGE_NAME-root.img)"
 else # ENABLE_SPLITFS=false
   dd if=/dev/zero of="$IMAGE_NAME.img" bs=512 count=${TABLE_SECTORS}
@@ -621,8 +641,8 @@ ${ROOT_OFFSET},${ROOT_SECTORS},83
 EOM
 
   # Setup temporary loop devices
-  FRMW_LOOP="$(losetup -o 1M --sizelimit 64M -f --show $IMAGE_NAME.img)"
-  ROOT_LOOP="$(losetup -o 65M -f --show $IMAGE_NAME.img)"
+  FRMW_LOOP="$(losetup -o 1M --sizelimit 128M -f --show $IMAGE_NAME.img)"
+  ROOT_LOOP="$(losetup -o 129M -f --show $IMAGE_NAME.img)"
 fi
 
 if [ "$ENABLE_CRYPTFS" = true ] ; then
@@ -683,15 +703,21 @@ else
 
   # Image was successfully created
   echo "$IMAGE_NAME.img ($(expr \( ${TABLE_SECTORS} + ${FRMW_SECTORS} + ${ROOT_SECTORS} \) \* 512 \/ 1024 \/ 1024)M)" ": successfully created"
+
+  # Compressing image
+  gzip $IMAGE_NAME.img -c > $IMAGE_NAME.img.gz
+  md5sum $IMAGE_NAME.img.gz > $IMAGE_NAME.md5
+  
 fi
 
-echo "Do you want format SD Card (y/n) ? "
-read  reply
-echo    # (optional) move to a new line
-if [ "$reply" = "y" ]; then
- echo "What your device name ? "
- read device
- sfdisk --delete /dev/"$device"
- partprobe /dev/"$device"
- dd if=$IMAGE_NAME.img of=/dev/"$device" bs=4M
-fi
+#~ echo "Do you want format SD Card (y/n) ? "
+#~ read  -t 30 reply
+#~ echo    # (optional) move to a new line
+#~ if [ "$reply" = "y" ]; then
+ #~ echo "What your device name ? "
+ #~ read device
+ #~ sfdisk --delete /dev/"$device"
+ #~ partprobe /dev/"$device"
+ #~ dd if=$IMAGE_NAME.img of=/dev/"$device" bs=512
+  #~ #bmaptool copy --bmap "$IMAGE_NAME.bmap" "$IMAGE_NAME.img" "/dev/$device"
+#~ fi

@@ -1,8 +1,8 @@
 [Plymouth Theme]
-Name=Kodibox Logo 
+Name=KBox Logo 
 Description=A theme that features a blank background with a logo.
 ModuleName=script
 
 [script]
 ImageDir=/usr/share/plymouth/themes/kbox
-ScriptFile=/usr/share/plymouth/themes/kodibox/kbox.script
+ScriptFile=/usr/share/plymouth/themes/kbox/kbox.script

@@ -2,14 +2,23 @@
 pushd $(dirname "$0")
 . ../../functions.sh
 
-version="1.0.2"
+[ ! $1 ] && echo "Architecture not found , please add argument (rbp | rbp2 | rbp3)" && exit
+build_env $1
+
 rm -rf kbox-* *-tmp
+
+VERSION="1.0.4"
 
 #  Build package
 cp -r files files-tmp
 cd files-tmp
-sed "s/(1.0)/($version)/g" -i debian/changelog
-dpkg-buildpackage -us -uc
+fix_version_changelog $VERSION
+fix_arch $RELEASE_ARCH
+dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
+
+mkdir -p ../packages
+mv kbox-* ../packages
+
 rm -rf *-tmp
 popd

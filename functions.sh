@@ -79,12 +79,21 @@ chroot_remove_cc() {
 }
 install_deb() {
   # Install debian packages
-  chroot_exec apt-get -q -y --allow-unauthenticated --no-install-recommends install $*
+  chroot_exec apt-get -o Dpkg::Options::="--force-confnew" -q -y --allow-unauthenticated --no-install-recommends install $*
 }
 fix_version() {
-	[ -n $1 ] && CONTROL=$1 || CONTROL="files/DEBIAN/control"
+	[ -n $2 ] && CONTROL=$2 || CONTROL="debian/control"
 	sed '/Version/d' -i $CONTROL
-	echo "Version: $2" >> $CONTROL
+	echo "Version: $1" >> $CONTROL
+}
+fix_version_changelog() {
+	[ $2 ] && CONTROL=$2 || CONTROL="debian/changelog"
+        sed "s/(1.0)/($1)/g" -i $CONTROL
+}
+fix_arch() {
+	[ $2 ] && CONTROL=$2 || CONTROL="debian/control"
+	sed '/Architecture/d' -i $CONTROL
+        echo "Architecture: $1" >> $CONTROL
 }
 dpkg_build() {
 	# Calculate package size and update control file before packaging.
@@ -138,4 +147,54 @@ pull_source() {
 	fi
 
 	echo -e "No file type match found for URL" && exit 1
+}
+create_fs_tarball() {
+	echo -e "Creating filesystem tarball"
+	pushd ${1}
+	tar -cf - * | xz -9 -c - > ../../${2}-$(date +%Y%m%d).tar.xz 
+	popd
+}
+build_env() {
+        case $1 in
+          rbp|rbp1|armel)
+            RPI_MODEL=1
+            KERNEL_DEFCONFIG=bcmrpi_defconfig
+            RELEASE_ARCH=armel
+            KERNEL_ARCH=arm
+            CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabi}
+            DTB_FILE=${DTB_FILE:=bcm2708-rpi-b-plus.dtb}
+            UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_defconfig}
+            KERNEL_IMAGE=${KERNEL_IMAGE:=kernel.img}
+            ;;
+          rbp2|armhf)
+            RPI_MODEL=2
+            KERNEL_DEFCONFIG=bcm2709_defconfig            
+            RELEASE_ARCH=armhf
+            KERNEL_ARCH=arm            
+            CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf}
+            DTB_FILE=${DTB_FILE:=bcm2709-rpi-2-b.dtb}
+            UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_2_defconfig}
+            KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
+            ;;
+          rbp3)
+            RPI_MODEL=3
+            KERNEL_DEFCONFIG=bcm2709_defconfig            
+            RELEASE_ARCH=armhf
+            KERNEL_ARCH=arm            
+            CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf}
+            DTB_FILE=${DTB_FILE:=bcm2710-rpi-3-b.dtb}
+            UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_3_32b_defconfig}
+            KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
+            ;;               
+          rbp3_64|arm64)
+            RPI_MODEL=3_64
+            KERNEL_DEFCONFIG=bcmrpi3_defconfig           
+            RELEASE_ARCH=arm64
+            KERNEL_ARCH=arm64            
+            CROSS_COMPILE=${CROSS_COMPILE:=aarch64-linux-gnu}
+            DTB_FILE=${DTB_FILE:=bcm2710-rpi-3-b.dtb}
+            UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_3_defconfig}
+            KERNEL_IMAGE=${KERNEL_IMAGE:=kernel8.img}
+            ;;          
+        esac
 }

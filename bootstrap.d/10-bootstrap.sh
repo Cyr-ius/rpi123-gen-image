@@ -24,10 +24,11 @@ if [ "$RELEASE" = "stretch" ] ; then
   EXCLUDES="--exclude=init,systemd-sysv"
 fi
 
-if [ ! -d "${BUILDDIR}/chroot_${RELEASE}" ]; then
+if [  ! -d "${BUILDDIR}/chroot-${RELEASE_ARCH}" ]; then
+  
   # Base debootstrap (unpack only)
   if [ ! "$(ls -A ${R})" ] ; then
-  http_proxy=${APT_PROXY} debootstrap ${EXCLUDES} --arch="${RELEASE_ARCH}" --foreign ${VARIANT} --components="${COMPONENTS}" --include="${APT_INCLUDES}" "${RELEASE}" "${R}" "http://${APT_SERVER}/debian"
+    http_proxy=${APT_PROXY} debootstrap ${EXCLUDES} --arch="${RELEASE_ARCH}" --foreign ${VARIANT} --components="${COMPONENTS}" "${RELEASE}" "${R}" "http://${APT_SERVER}/debian"
   fi
 
   # Copy qemu emulator binary to chroot
@@ -39,15 +40,17 @@ if [ ! -d "${BUILDDIR}/chroot_${RELEASE}" ]; then
 
   # Complete the bootstrapping process
   if [ "$(ls -A ${R}/debootstrap)" ] ; then
-  chroot_exec /debootstrap/debootstrap --second-stage
+    chroot_exec /debootstrap/debootstrap --second-stage
   fi
 
   # Copy & save
-  cp -af "${R}" "${BUILDDIR}/chroot_${RELEASE}"
+  cp -af "${R}" "${BUILDDIR}/chroot-${RELEASE_ARCH}"
 
 else
+
+  # Clean & copye chroot reference
   rm -rf "${R}"
-  cp -af "${BUILDDIR}/chroot_${RELEASE}" "${R}"
+  cp -af "${BUILDDIR}/chroot-${RELEASE_ARCH}" "${R}"
 fi
 
 # Mount required filesystems

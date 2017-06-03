@@ -1,8 +1,8 @@
 # Configuration template file used by rpi23-gen-image.sh
-RPI_MODEL=2
+RPI_MODEL=3
 RELEASE=stretch
-APT_INCLUDES="fbset libsmbclient libcap2-bin irqbalance"
-APT_INCLUDES_KERNEL="kbox-linux"
+APT_INCLUDES="fbset,libsmbclient,dirmngr,libcap2-bin"
+APT_INCLUDES_KERNEL="kbox-linux-rpi23"
 DEFLOCAL="fr_FR.UTF-8"
 TIMEZONE="Europe/Paris"
 HOSTNAME="kbox"

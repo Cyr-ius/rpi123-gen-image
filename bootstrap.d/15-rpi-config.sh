@@ -6,8 +6,10 @@
 . ./functions.sh
 
 if [ "$BUILD_KERNEL" = true  ] ; then
+{
   if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ]; then
-    # Install boot binaries from local directory
+  {
+   # Install boot binaries from local directory
     [ ! -f "${BOOT_DIR}/bootcode.bin" ] && cp ${RPI_FIRMWARE_DIR}/boot/bootcode.bin ${BOOT_DIR}/bootcode.bin
     [ ! -f "${BOOT_DIR}/fixup.dat" ] && cp ${RPI_FIRMWARE_DIR}/boot/fixup.dat ${BOOT_DIR}/fixup.dat
     [ ! -f "${BOOT_DIR}/fixup_cd.dat" ] && cp ${RPI_FIRMWARE_DIR}/boot/fixup_cd.dat ${BOOT_DIR}/fixup_cd.dat
@@ -15,7 +17,9 @@ if [ "$BUILD_KERNEL" = true  ] ; then
     [ ! -f "${BOOT_DIR}/start.elf" ] && cp ${RPI_FIRMWARE_DIR}/boot/start.elf ${BOOT_DIR}/start.elf
     [ ! -f "${BOOT_DIR}/start_cd.elf" ] && cp ${RPI_FIRMWARE_DIR}/boot/start_cd.elf ${BOOT_DIR}/start_cd.elf
     [ ! -f "${BOOT_DIR}/start_x.elf" ] && cp ${RPI_FIRMWARE_DIR}/boot/start_x.elf ${BOOT_DIR}/start_x.elf
+  }
   else
+  {
     # Create temporary directory for boot binaries
     temp_dir=$(sudo -u nobody mktemp -d)
 
@@ -37,8 +41,8 @@ if [ "$BUILD_KERNEL" = true  ] ; then
     # Set permissions of the boot binaries
     chown -R root:root "${BOOT_DIR}"
     chmod -R 600 "${BOOT_DIR}"
-  fi
-fi
+  } fi
+} fi
 
 # Setup firmware boot cmdline
 if [ "$ENABLE_SPLITFS" = true ] ; then
@@ -78,6 +82,11 @@ if [ "$RELEASE" = "stretch" ] ; then
   CMDLINE="${CMDLINE} init=/bin/systemd"
 fi
 
+# Disable blinking cursor on splashscreen
+if [ "$ENABLE_SPLASHSCREEN" = true ]; then
+  CMDLINE="${CMDLINE} vt.global_cursor_default=0"
+fi
+
 # Install firmware boot cmdline
 echo "${CMDLINE}" > "${BOOT_DIR}/cmdline.txt"
 
@@ -92,11 +101,10 @@ else
   echo "gpu_mem=16" >> "${BOOT_DIR}/config.txt"
   echo "gpu_mem_512=128" >> "${BOOT_DIR}/config.txt"
   echo "gpu_mem_1024=256" >> "${BOOT_DIR}/config.txt"
-  echo "hdmi_ignore_cec_init=1" >> "${BOOT_DIR}/config.txt"
   echo "disable_overscan=1" >> "${BOOT_DIR}/config.txt"
   echo "start_x=1" >> "${BOOT_DIR}/config.txt"
   echo "dtoverlay=lirc-rpi:gpio_out_pin=17,gpio_in_pin=18" >> "${BOOT_DIR}/config.txt"
-  echo "disable_splash=1" >> "${BOOT_DIR}/config.txt"  
+  [ "$ENABLE_SPLASHSCREEN" = true ] && echo "disable_splash=1" >> "${BOOT_DIR}/config.txt"  
 fi
 
 # Setup boot with initramfs
@@ -112,10 +120,6 @@ if [ "$RPI_MODEL" = 3 ] ; then
     echo "enable_uart=1" >> "${BOOT_DIR}/config.txt"
   fi
 fi
-
-# Create firmware configuration and cmdline symlinks
-#ln -sf firmware/config.txt "${R}/boot/config.txt"
-#ln -sf firmware/cmdline.txt "${R}/boot/cmdline.txt"
 
 # Install and setup kernel modules to load at boot
 mkdir -p "${R}/lib/modules-load.d/"

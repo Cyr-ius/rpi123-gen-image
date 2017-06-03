@@ -6,8 +6,11 @@ kernel-packages
 *.bak
 *.log
 config
-linux*
-firmware*
+linux
+firmware
+tools
+noobs
 bootstrap.d/flags
 deb-packages/kbox-userland/firmware
 deb-packages/kbox-kernel/linux
+deb-packages/packages

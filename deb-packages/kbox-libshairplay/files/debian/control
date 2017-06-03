@@ -1,0 +1,11 @@
+Source: libshairplay0
+Section: libs
+Priority: optional
+Maintainer: Cyr-ius <cyr-ius@ipocus.net>
+Build-Depends: debhelper (>= 8.0.0)
+Homepage: https://github.com/cyr-ius/rpi23-gen-image
+
+Package: libshairplay0
+Architecture: all
+Depends: ${misc:Depends}
+Description: libshairplay0 package

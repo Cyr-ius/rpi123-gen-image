@@ -1,47 +1,65 @@
 #!/bin/bash
 pushd $(dirname "$0")
-. ./../../functions.sh
+. ../../functions.sh
 
-URL="https://github.com/raspberrypi/firmware"
+[ ! $1 ] && echo "Architecture not found , please add argument (rbp1 | rbp2 | rbp3)" && exit
+build_env $1
 
-#Clean folder
 rm -rf kbox-* *-tmp
 
 #Pull source
+URL="https://github.com/raspberrypi/firmware"
 pull_source "${URL}" firmware
 
-version="$(ls firmware/modules | sort -r | head -1)"
+[ $RPI_MODEL = 1 ] && VERSION="$(ls firmware/modules | head -1)" || VERSION="$(ls firmware/modules | sort -r | head -1)"
 
 if [ -d "firmware" ]; then
 
-#  Build package
+#  Build package kbox-userland
 cp -r files files-tmp
 cd files-tmp
-sed "s/(1.0)/($version)/g" -i debian/changelog
-dpkg-buildpackage -us -uc
+echo "override_dh_shlibdeps:" >> debian/rules
+fix_version_changelog $VERSION
+fix_arch $RELEASE_ARCH
+[ $RPI_MODEL = 1 ]  && sed -i 's|hardfp/||g' debian/kbox-userland.install
+dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
 
+#  Build package kbox-userland-dev
 cp -r files-dev files-dev-tmp
 cd files-dev-tmp
 sed '/Depends/d' -i debian/control
-echo "Depends: \${misc:Depends}, kbox-userland (=${version})" >> debian/control
-sed "s/(1.0)/($version)/g" -i debian/changelog
-dpkg-buildpackage -us -uc
+echo "Depends: \${misc:Depends}, kbox-userland (=${VERSION})" >> debian/control
+echo "override_dh_shlibdeps:" >> debian/rules
+[ $RPI_MODEL = 1 ]  && sed -i 's|hardfp/||g' debian/kbox-userland.install
+fix_version_changelog $VERSION
+fix_arch $RELEASE_ARCH
+dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
 
+#  Build package kbox-userland-src
 cp -r files-src files-src-tmp
 cd files-src-tmp
 sed '/Depends/d' -i debian/control
-echo "Depends: \${misc:Depends}, kbox-userland (=${version})" >> debian/control
-sed "s/(1.0)/($version)/g" -i debian/changelog
-dpkg-buildpackage -us -uc
+echo "Depends: \${misc:Depends}, kbox-userland (=${VERSION})" >> debian/control
+echo "override_dh_shlibdeps:" >> debian/rules
+[ $RPI_MODEL = 1 ]  && sed -i 's|hardfp/||g' debian/kbox-userland.install
+fix_version_changelog $VERSION
+fix_arch $RELEASE_ARCH
+dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
 
+#  Build package kbox-bootloader
 cp -r files-bootloader files-bootloader-tmp
 cd files-bootloader-tmp
-sed "s/(1.0)/($version)/g" -i debian/changelog
-dpkg-buildpackage -us -uc
+echo "override_dh_shlibdeps:" >> debian/rules
+fix_version_changelog $VERSION
+fix_arch $RELEASE_ARCH
+dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
+
+mkdir -p ../packages
+mv kbox-* ../packages
 
 rm -rf *-tmp
 

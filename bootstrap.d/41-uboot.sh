@@ -10,6 +10,7 @@ KERNEL_VERSION=$(cat ${R}/boot/kernel.release)
 
 # Fetch and build U-Boot bootloader
 if [ "$ENABLE_UBOOT" = true ] ; then
+
   # Install c/c++ build environment inside the chroot
   chroot_install_cc
 
@@ -52,11 +53,14 @@ if [ "$ENABLE_UBOOT" = true ] ; then
 
     # Remove original initramfs file
     rm -f "${BOOT_DIR}/initrd.img-${KERNEL_VERSION}"
+    sed '/initramfs/d' -i "${BOOT_DIR}/config.txt"
 
     # Configure U-Boot to load generated initramfs
     printf "# Set initramfs file\nsetenv initramfs initrd.img-${KERNEL_VERSION}.uboot\n\n$(cat ${BOOT_DIR}/uboot.mkimage)" > "${BOOT_DIR}/uboot.mkimage"
     printf "\nbootz \${kernel_addr_r} \${ramdisk_addr_r} \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
+    
   else # ENABLE_INITRAMFS=false
+  
     # Remove initramfs from U-Boot mkfile
     sed -i '/.*initramfs.*/d' "${BOOT_DIR}/uboot.mkimage"
 
@@ -79,7 +83,7 @@ if [ "$ENABLE_UBOOT" = true ] ; then
   sed -i "/./,\$!d" "${BOOT_DIR}/uboot.mkimage"
 
   # Generate U-Boot bootloader image
-  chroot_exec /usr/sbin/mkimage -A "${KERNEL_ARCH}" -O linux -T script -C none -a 0x00000000 -e 0x00000000 -n "RPi${RPI_MODEL}" -d /boot/firmware/uboot.mkimage /boot/firmware/boot.scr
+  chroot_exec /usr/sbin/mkimage -A "${KERNEL_ARCH}" -O linux -T script -C none -a 0x00000000 -e 0x00000000 -n "RPi${RPI_MODEL}" -d "/boot/uboot.mkimage" "/boot/boot.scr"
 
   # Remove U-Boot sources
   rm -fr "${R}/tmp/u-boot"

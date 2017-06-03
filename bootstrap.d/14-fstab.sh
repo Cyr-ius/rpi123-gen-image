@@ -48,7 +48,9 @@ if [ "$ENABLE_INITRAMFS" = true ]; then
     echo "0 1 crypt $(echo ${CRYPTFS_CIPHER} | cut -d ':' -f 1) ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff 0 7:0 4096" | chroot_exec dmsetup create "${CRYPTFS_MAPPING}"
 
     # Generate initramfs with encrypted root partition support
-    chroot_exec update-initramfs -c -k "${KERNEL_VERSION}"
+    chroot_exec << EOF
+update-initramfs -c -k "${KERNEL_VERSION}" || update-initramfs -u
+EOF
 
     # Remove dummy mapping
     chroot_exec cryptsetup close "${CRYPTFS_MAPPING}"
@@ -56,7 +58,6 @@ if [ "$ENABLE_INITRAMFS" = true ]; then
   
     # Generate initramfs without encrypted root partition support
     if [ "$EXPANDROOT" = true ] ; then
-      install_deb cloud-guest-utils
       install_exec files/initramfs/local-bottom/growroot "${ETC_DIR}/initramfs-tools/scripts/local-bottom/"
       install_exec files/initramfs/growroot-tools "${ETC_DIR}/initramfs-tools/hooks/"
     fi

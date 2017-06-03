@@ -6,12 +6,13 @@
 . ./functions.sh
 
 display_message() {
- [ "$ENABLE_SPLASHSCREEN" = true ] && echo "plymouth update --status=\"${*}\"" >> "${ETC_DIR}/rc.firstboot"
+ [ "$ENABLE_SPLASHSCREEN" = true ] && echo "plymouth update --status=\"${*}\"" >> "${ETC_DIR}/rc.firstboot" || echo .
 }
 
 # Prepare rc.firstboot script
 display_message "Please wait, first boot : initialize configuration..."
 cat files/firstboot/10-begin.sh > "${ETC_DIR}/rc.firstboot"
+
 
 # Ensure openssh server host keys are regenerated on first boot
 if [ "$ENABLE_SSHD" = true ] ; then
@@ -57,7 +58,7 @@ fi
 # Finalize rc.firstboot script
 cat files/firstboot/99-finish.sh >> "${ETC_DIR}/rc.firstboot"
 chmod +x "${ETC_DIR}/rc.firstboot"
-display_message "Please wait, first boot : starting Kodi..."
+display_message "Please wait, first boot : clean up ..."
 
 
 # Install default rc.local if it does not exist

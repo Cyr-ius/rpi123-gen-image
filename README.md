@@ -1,13 +1,13 @@
-# rpi23-gen-image
+# rpi123-gen-image
 ## Introduction
-`rpi23-gen-image.sh` is an advanced Debian Linux bootstrapping shell script for generating Debian OS images for Raspberry Pi 2 (RPi2) and Raspberry Pi 3 (RPi3) computers. The script at this time supports the bootstrapping of the Debian (armhf) releases `jessie` and `stretch`. Raspberry Pi 3 images are currently generated for 32-bit mode only.
+`rpi123-gen-image.sh` is an advanced Debian Linux bootstrapping shell script for generating Debian OS images for Raspberry Pi 1 (RPi1) , Raspberry Pi 2 (RPi2) and Raspberry Pi 3 (RPi3) computers. The script at this time supports the bootstrapping of the Debian (armhf) releases `jessie` and `stretch`. Raspberry Pi 3 images are currently generated for 32-bit mode only.
 
 ## Build dependencies
 The following list of Debian packages must be installed on the build system because they are essentially required for the bootstrapping process. The script will check if all required packages are installed and missing packages will be installed automatically if confirmed by the user.
 
   ```debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc psmisc dbus sudo```
 
-It is recommended to configure the `rpi23-gen-image.sh` script to build and install the latest Raspberry Pi Linux kernel. For the RPi3 this is mandetory. Kernel compilation and linking will be performed on the build system using an ARM (armhf) cross-compiler toolchain.
+It is recommended to configure the `rpi123-gen-image.sh` script to build and install the latest Raspberry Pi Linux kernel. For the RPi3 this is mandetory. Kernel compilation and linking will be performed on the build system using an ARM (armhf) cross-compiler toolchain.
 
 The script has been tested using the default `crossbuild-essential-armhf` toolchain meta package on Debian Linux `jessie` and `stretch` build systems. Please check the [Debian CrossToolchains Wiki](https://wiki.debian.org/CrossToolchains) for further information.
 
@@ -21,32 +21,32 @@ apt-get update
 ```
 
 ## Command-line parameters
-The script accepts certain command-line parameters to enable or disable specific OS features, services and configuration settings. These parameters are passed to the `rpi23-gen-image.sh` script via (simple) shell-variables. Unlike environment shell-variables (simple) shell-variables are defined at the beginning of the command-line call of the `rpi23-gen-image.sh` script.
+The script accepts certain command-line parameters to enable or disable specific OS features, services and configuration settings. These parameters are passed to the `rpi123-gen-image.sh` script via (simple) shell-variables. Unlike environment shell-variables (simple) shell-variables are defined at the beginning of the command-line call of the `rpi123-gen-image.sh` script.
 
 #####Command-line examples:
 ```shell
-ENABLE_UBOOT=true ./rpi23-gen-image.sh
-ENABLE_CONSOLE=false ENABLE_IPV6=false ./rpi23-gen-image.sh
-ENABLE_WM=xfce4 ENABLE_FBTURBO=true ENABLE_MINBASE=true ./rpi23-gen-image.sh
-ENABLE_HARDNET=true ENABLE_IPTABLES=true /rpi23-gen-image.sh
-APT_SERVER=ftp.de.debian.org APT_PROXY="http://127.0.0.1:3142/" ./rpi23-gen-image.sh
-ENABLE_MINBASE=true ./rpi23-gen-image.sh
-BUILD_KERNEL=true ENABLE_MINBASE=true ENABLE_IPV6=false ./rpi23-gen-image.sh
-BUILD_KERNEL=true KERNELSRC_DIR=/tmp/linux ./rpi23-gen-image.sh
-ENABLE_MINBASE=true ENABLE_REDUCE=true ENABLE_MINGPU=true BUILD_KERNEL=true ./rpi23-gen-image.sh
-ENABLE_CRYPTFS=true CRYPTFS_PASSWORD=changeme EXPANDROOT=false ENABLE_MINBASE=true ENABLE_REDUCE=true ENABLE_MINGPU=true BUILD_KERNEL=true ./rpi23-gen-image.sh
-RELEASE=stretch BUILD_KERNEL=true ./rpi23-gen-image.sh
-RPI_MODEL=3 ENABLE_WIRELESS=true ENABLE_MINBASE=true BUILD_KERNEL=true ./rpi23-gen-image.sh
-RELEASE=stretch RPI_MODEL=3 ENABLE_WIRELESS=true ENABLE_MINBASE=true BUILD_KERNEL=true ./rpi23-gen-image.sh
+ENABLE_UBOOT=true ./rpi123-gen-image.sh
+ENABLE_CONSOLE=false ENABLE_IPV6=false ./rpi123-gen-image.sh
+ENABLE_WM=xfce4 ENABLE_FBTURBO=true ENABLE_MINBASE=true ./rpi123-gen-image.sh
+ENABLE_HARDNET=true ENABLE_IPTABLES=true /rpi123-gen-image.sh
+APT_SERVER=ftp.de.debian.org APT_PROXY="http://127.0.0.1:3142/" ./rpi123-gen-image.sh
+ENABLE_MINBASE=true ./rpi123-gen-image.sh
+BUILD_KERNEL=true ENABLE_MINBASE=true ENABLE_IPV6=false ./rpi123-gen-image.sh
+BUILD_KERNEL=true KERNELSRC_DIR=/tmp/linux ./rpi123-gen-image.sh
+ENABLE_MINBASE=true ENABLE_REDUCE=true ENABLE_MINGPU=true BUILD_KERNEL=true ./rpi123-gen-image.sh
+ENABLE_CRYPTFS=true CRYPTFS_PASSWORD=changeme EXPANDROOT=false ENABLE_MINBASE=true ENABLE_REDUCE=true ENABLE_MINGPU=true BUILD_KERNEL=true ./rpi123-gen-image.sh
+RELEASE=stretch BUILD_KERNEL=true ./rpi123-gen-image.sh
+RPI_MODEL=3 ENABLE_WIRELESS=true ENABLE_MINBASE=true BUILD_KERNEL=true ./rpi123-gen-image.sh
+RELEASE=stretch RPI_MODEL=3 ENABLE_WIRELESS=true ENABLE_MINBASE=true BUILD_KERNEL=true ./rpi123-gen-image.sh
 ```
 
 ## Configuration template files
-To avoid long lists of command-line parameters and to help to store the favourite parameter configurations the `rpi23-gen-image.sh` script supports so called configuration template files (`CONFIG_TEMPLATE`=template). These are simple text files located in the `./templates` directory that contain the list of configuration parameters that will be used. New configuration template files can be added to the `./templates` directory.
+To avoid long lists of command-line parameters and to help to store the favourite parameter configurations the `rpi123-gen-image.sh` script supports so called configuration template files (`CONFIG_TEMPLATE`=template). These are simple text files located in the `./templates` directory that contain the list of configuration parameters that will be used. New configuration template files can be added to the `./templates` directory.
 
 #####Command-line examples:
 ```shell
-CONFIG_TEMPLATE=rpi3stretch ./rpi23-gen-image.sh
-CONFIG_TEMPLATE=rpi2stretch ./rpi23-gen-image.sh
+CONFIG_TEMPLATE=rpi3stretch ./rpi123-gen-image.sh
+CONFIG_TEMPLATE=rpi2stretch ./rpi123-gen-image.sh
 ```
 
 ## Supported parameters and settings
@@ -88,6 +88,9 @@ Set default system timezone. All available timezones can be found in the `/usr/s
 Expand the root partition and filesystem automatically on first boot.
 
 ##### `RESET`=true
+Reset all flags , the setting of a flag avoids replaying the step and cleaning all sources folders
+
+##### `CLEAN`=true
 Reset all flags , the setting of a flag avoids replaying the step.
 
 ---
@@ -185,7 +188,7 @@ Install and enable D-Bus message bus. Please note that systemd should work witho
 Install Xorg open-source X Window System.
 
 ##### `ENABLE_WM`=""
-Install a user defined window manager for the X Window System. To make sure all X related package dependencies are getting installed `ENABLE_XORG` will automatically get enabled if `ENABLE_WM` is used. The `rpi23-gen-image.sh` script has been tested with the following list of window managers: `blackbox`, `openbox`, `fluxbox`, `jwm`, `dwm`, `xfce4`, `awesome`.
+Install a user defined window manager for the X Window System. To make sure all X related package dependencies are getting installed `ENABLE_XORG` will automatically get enabled if `ENABLE_WM` is used. The `rpi123-gen-image.sh` script has been tested with the following list of window managers: `blackbox`, `openbox`, `fluxbox`, `jwm`, `dwm`, `xfce4`, `awesome`.
 
 ##### `ENABLE_SPLASHSCREEN`=true
 Install and enable plymouth with Kbox Theme.
@@ -408,14 +411,14 @@ Debian custom packages, i.e. those not in the debian repositories, can be instal
 Scripts in the custom.d directory will be executed after all other installation is complete but before the image is created.
 
 ## Logging of the bootstrapping process
-All information related to the bootstrapping process and the commands executed by the `rpi23-gen-image.sh` script can easily be saved into a logfile. The common shell command `script` can be used for this purpose:
+All information related to the bootstrapping process and the commands executed by the `rpi123-gen-image.sh` script can easily be saved into a logfile. The common shell command `script` can be used for this purpose:
 
 ```shell
-script -c 'APT_SERVER=ftp.de.debian.org ./rpi23-gen-image.sh' ./build.log
+script -c 'APT_SERVER=ftp.de.debian.org ./rpi123-gen-image.sh' ./build.log
 ```
 
 ## Flashing the image file
-After the image file was successfully created by the `rpi23-gen-image.sh` script it can be copied to the microSD card that will be used by the RPi2/3 computer. This can be performed by using the tools `bmaptool` or `dd`. Using `bmaptool` will probably speed-up the copy process because `bmaptool` copies more wisely than `dd`.
+After the image file was successfully created by the `rpi123-gen-image.sh` script it can be copied to the microSD card that will be used by the RPi2/3 computer. This can be performed by using the tools `bmaptool` or `dd`. Using `bmaptool` will probably speed-up the copy process because `bmaptool` copies more wisely than `dd`.
 
 #####Flashing examples:
 ```shell
@@ -431,15 +434,18 @@ bmaptool copy ./images/jessie/2017-01-23-rpi3-jessie-root.img /dev/sdc
 To facilitate system maintenance. It is possible to create debian packages for the kernel and the user environment.
 To do this, simply run the build script in the directory deb-packages
 ```shell
-./deb-ackages/kbox-kernel/build.sh
-./deb-ackages/kbox-userland/build.sh
-./deb-ackages/kbox-splashscreen/build.sh
+./deb-packages/kbox-kernel/build.sh rbp1
+./deb-packages/kbox-userland/build.sh rbp2
+./deb-packages/kbox-splashscreen/build.sh rbp2
 ```
 | Directory | Description |
 | --- | --- |
 | `kbox-kernel` | Build packages for Linux kernel |
 | `kbox-userland` | Build the package that contains the raspberry firmware |
 | `kbox-splashscreen` | Build the Spalshscreen package |
+| `kbox-libshairplay` | Build the libshairplay0 package for Apple Airport |
+| `kbox-perftune` | Build the Perftune package |
+| `kbox-raspi-config` | Build the raspi-config package |
 
 
 ## External links and references
@@ -451,4 +457,3 @@ To do this, simply run the build script in the directory deb-packages
 * [U-BOOT git repository](http://git.denx.de/?p=u-boot.git;a=summary)
 * [Xorg DDX driver fbturbo](https://github.com/ssvb/xf86-video-fbturbo)
 * [RPi3 Wireless interface firmware](https://github.com/RPi-Distro/firmware-nonfree/tree/master/brcm80211/brcm)
-* [Collabora RPi2 Kernel precompiled](https://repositories.collabora.co.uk/debian/)

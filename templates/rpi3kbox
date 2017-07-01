@@ -1,7 +1,6 @@
 # Configuration template file used by rpi23-gen-image.sh
 RPI_MODEL=3
-RELEASE=stretch
-APT_INCLUDES="fbset libsmbclient libcap2-bin"
+APT_INCLUDES="irqbalance"
 APT_INCLUDES_KERNEL="kbox-linux"
 DEFLOCAL="fr_FR.UTF-8"
 TIMEZONE="Europe/Paris"
@@ -14,5 +13,5 @@ USER_PASSWORD="kodi"
 ENABLE_CONSOLE="false"
 KERNEL_THREADS=4
 ENABLE_INITRAMFS="true"
-ENABLE_SPLASHSCREEN="true"
-ENABLE_KODI="true"
+ENABLE_SPLASHSCREEN="false"
+ENABLE_KODI="false"

@@ -1,0 +1,6 @@
+arm-mem (1.0.5) stable; urgency=medium
+
+  * Create ARM-accelerated versions of selected functions from <string.h> 
+
+ -- Cyr-ius <cyr-ius@ipocus.net>  Sat, 8 Apr 2017 17:20:01 +0000
+

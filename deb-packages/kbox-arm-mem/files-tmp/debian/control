@@ -1,0 +1,11 @@
+Source: arm-mem
+Section: admin
+Priority: required
+Maintainer: Cyr-ius <cyr-ius@ipocus.net>
+Build-Depends: debhelper (>= 8.0.0)
+Homepage: https://github.com/cyr-ius/rpi23-gen-image
+
+Package: arm-mem
+Depends: ${misc:Depends}
+Description: ARM-accelerated versions of selected functions from <string.h> 
+Architecture: armel

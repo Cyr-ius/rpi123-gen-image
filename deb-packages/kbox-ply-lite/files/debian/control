@@ -1,0 +1,11 @@
+Source: ply-lite
+Section: admin
+Priority: required
+Maintainer: Cyr-ius <cyr-ius@ipocus.net>
+Build-Depends: debhelper (>= 8.0.0)
+Homepage: https://github.com/cyr-ius/rpi23-gen-image
+
+Package: ply-lite
+Architecture: all
+Depends: ${misc:Depends}
+Description: Plymouth lite for linux

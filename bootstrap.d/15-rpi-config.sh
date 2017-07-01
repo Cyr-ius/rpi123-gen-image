@@ -46,9 +46,9 @@ if [ "$BUILD_KERNEL" = true  ] ; then
 
 # Setup firmware boot cmdline
 if [ "$ENABLE_SPLITFS" = true ] ; then
-  CMDLINE="dwc_otg.lpm_enable=0 dwc_otg.fiq_fix_enable=1 sdhci-bcm2708.sync_after_dma=0 root=/dev/sda1 rootfstype=ext4 elevator=deadline rootwait console=tty1 fsck.repair=yes quiet logo.nologo"
+  CMDLINE="dwc_otg.lpm_enable=0 dwc_otg.fiq_fix_enable=1 sdhci-bcm2708.sync_after_dma=0 root=/dev/sda1 rootfstype=ext4 elevator=deadline rootwait console=tty1 fsck.repair=yes logo.nologo"
 else
-  CMDLINE="dwc_otg.lpm_enable=0 dwc_otg.fiq_fix_enable=1 sdhci-bcm2708.sync_after_dma=0 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait console=tty1 fsck.repair=yes quiet logo.nologo"
+  CMDLINE="dwc_otg.lpm_enable=0 dwc_otg.fiq_fix_enable=1 sdhci-bcm2708.sync_after_dma=0 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait console=tty1 fsck.repair=yes logo.nologo"
 fi
 
 # Add encrypted root partition to cmdline.txt
@@ -167,8 +167,11 @@ install_readonly files/sysctl.d/81-rpi-vm.conf "${ETC_DIR}/sysctl.d/81-rpi-vm.co
 
 if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
   # Move downloaded firmware binary blob
-  cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
-
+  if [ "$RPI_MODEL" = 1 ] ; then
+    cp -r "${RPI_FIRMWARE_DIR}/opt/vc" "${R}/opt"
+  else
+    cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
+  fi
   # Install VC libraries
   echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
 fi

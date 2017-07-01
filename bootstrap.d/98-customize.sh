@@ -1,5 +1,5 @@
 #
-# Setup APT repositories
+# Customize and fix errors
 #
 
 # Load utility functions

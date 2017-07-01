@@ -1,16 +1,18 @@
 #!/bin/bash
 
 ########################################################################
-# rpi23-gen-image.sh					       2015-2017
+# rpi123-gen-image.sh					       2015-2017
 #
-# Advanced Debian "jessie" and "stretch"  bootstrap script for RPi2/3
+# Advanced Debian "jessie" and "stretch"  bootstrap script for RPi1/2/3
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
 #
-# Copyright (C) 2015 Jan Wagner <mail@jwagner.eu>
+# Orginal Author : Jan Wagner <mail@jwagner.eu>
+#
+# Copyright (C) 2017 Cédric Levasseur <cedric.levasseur@ipocus.net>
 #
 # Big thanks for patches and enhancements by 10+ github contributors!
 ########################################################################
@@ -37,7 +39,7 @@ fi
 
 # Introduce settings
 set -e
-echo -n -e "\n#\n# RPi2/3 Bootstrap Settings\n#\n"
+echo -n -e "\n#\n# RPi1/2/3 Bootstrap Settings\n#\n"
 set -x
 
 # Default Raspberry Pi model configuration
@@ -64,9 +66,6 @@ UBOOT_URL=${UBOOT_URL:=git://git.denx.de/u-boot.git}
 # Build directories
 BASEDIR=${BASEDIR:=$(pwd)/images/${RELEASE}}
 BUILDDIR="${BASEDIR}/build"
-# Prepare date string for default image file name
-DATE="$(date +%Y-%m-%d)"
-IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-rpi${RPI_MODEL}-${RELEASE}}
 
 #Cleaning building directories and files flags
 RESET=${RESET:=false}
@@ -85,14 +84,19 @@ WLAN_FIRMWARE_DIR="${R}/lib/firmware/brcm"
 # Firmware directory: Blank if download from github
 RPI_FIRMWARE_DIR=${RPI_FIRMWARE_DIR:=""}
 TOOLS_DIR=${TOOLS_DIR:=""}
+DEB_PACKAGES=${DEB_PACKAGES:="$(pwd)/deb-packages"}
 
 # General settings
-HOSTNAME=${HOSTNAME:=rpi${RPI_MODEL}-${RELEASE}}
+HOSTNAME=${HOSTNAME:=gen-img}
 PASSWORD=${PASSWORD:=raspberry}
 USER_PASSWORD=${USER_PASSWORD:=raspberry}
 DEFLOCAL=${DEFLOCAL:="en_US.UTF-8"}
 TIMEZONE=${TIMEZONE:="Europe/Berlin"}
 EXPANDROOT=${EXPANDROOT:=true}
+
+# Prepare date string for default image file name
+DATE="$(date +%Y-%m-%d)"
+IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-${HOSTNAME}-rpi${RPI_MODEL}-${RELEASE}}
 
 # Keyboard settings
 XKB_MODEL=${XKB_MODEL:=""}
@@ -213,6 +217,7 @@ set +x
 
 # Clean all flags, building folder and sources
 if [ "$RESET" = true ]; then
+  echo "Reset flags in bootstrap.d and custom.d and delete linux,firmware and tools folders"
   [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
   [ -d "custom.d/flags" ] && rm -rf custom.d/flags
   [ -d "linux" ] && rm -rf linux
@@ -223,6 +228,7 @@ fi
 
 # Clean all flags  and building folder
 if [ "$CLEAN" = true ]; then
+  echo "Reset flags in bootstrap.d and custom.d folders"
   [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
   [ -d "custom.d/flags" ] && rm -rf custom.d/flags
   [ -d "${BUILDDIR}/chroot" ] && rm -rf "${BUILDDIR}/chroot"
@@ -259,7 +265,6 @@ fi
 
 # Add fbturbo video driver
 if [ "$ENABLE_FBTURBO" = true ] ; then
-  # Enable xorg package dependencies
   ENABLE_XORG=true
 fi
 
@@ -310,7 +315,7 @@ fi
 
 # Add parted package, required to get partprobe utility
 if [ "$EXPANDROOT" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} parted cloud-guest-utils"
+  APT_INCLUDES="${APT_INCLUDES} parted"
 fi
 
 # Add dbus package, recommended if using systemd
@@ -341,7 +346,6 @@ fi
 # Add user defined window manager package
 if [ -n "$ENABLE_WM" ] ; then
   APT_INCLUDES="${APT_INCLUDES} ${ENABLE_WM}"
-  # Enable xorg package dependencies
   ENABLE_XORG=true
 fi
 
@@ -357,7 +361,7 @@ fi
 
 # Add Kodi package
 if [ "$ENABLE_KODI" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-pvr-* kodi-visualization-* kodi-audiodecoder-* kodi-audioencoder-* kodi-inputstream-* policykit-1"
+  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-pvr-* kodi-visualization-* kodi-audiodecoder-* kodi-audioencoder-* kodi-inputstream-* policykit-1 fbset libsmbclient libcap2-bin connman"
 fi
 
 # Replace selected packages with smaller clones
@@ -451,14 +455,9 @@ if [ -r "/dev/mapping/${CRYPTFS_MAPPING}" ] ; then
   exit 1
 fi
 
-# Don't clobber an old build
-if [ -e "$BUILDDIR" ] ; then
-  echo "error: directory ${BUILDDIR} already exists, not proceeding"
-  #exit 1
-fi
-
 # Pull Firmware source if url is not empty
 if [ ! -z $FIRMWARE_URL ] && [ -z "$RPI_FIRMWARE_DIR" ];then
+  echo "Pull firmware source"
   RPI_FIRMWARE_DIR="$(pwd)/firmware"
   pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
   chmod ugo+rw "${RPI_FIRMWARE_DIR}"
@@ -466,6 +465,7 @@ fi
 
 # Pull Kernel source if url is not empty
 if [ ! -z $KERNEL_URL ] && [ -z "$KERNELSRC_DIR" ];then
+  echo "Pull kernel source"
   KERNELSRC_DIR="$(pwd)/linux"
   pull_source "${KERNEL_URL}" "${KERNELSRC_DIR}"
   chmod ugo+rw "${KERNELSRC_DIR}"
@@ -473,6 +473,7 @@ fi
 
 # Pull Tools source if url is not empty
 if [ ! -z $TOOLS_URL ] && [ -z "$TOOLS_DIR" ];then
+  echo "Pull tools source"
   TOOLS_DIR="$(pwd)/tools"
   pull_source "${TOOLS_URL}" "${TOOLS_DIR}"
   chmod ugo+rw "${TOOLS_DIR}"
@@ -572,7 +573,7 @@ rm -f "${R}${QEMU_BINARY}"
 
 #Create TAR Filesystem
 if [ "$CREATE_TARBALL" = true ] ; then
-	create_fs_tarball "${R}" "${HOSTNAME}-rpi${RPI_MODEL}-filesystem"
+	create_fs_tarball "${R}" "$IMAGE_NAME-filesystem"
 fi
 
 #Create NOOBS Installer

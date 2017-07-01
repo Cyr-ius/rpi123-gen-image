@@ -11,7 +11,8 @@ chroot_exec rm /etc/localtime
 chroot_exec dpkg-reconfigure -f noninteractive tzdata
 
 # Install and setup default locale and keyboard configuration
-if [ $(echo "$APT_INCLUDES" | grep ",locales") ] ; then
+(echo "$APT_INCLUDES" | grep "locales") && locales_found=1 || locales_found=0
+if [ $locales_found = 1 ] ; then
   # Set locale choice in debconf db, even though dpkg-reconfigure ignores and overwrites them due to some bug
   # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=684134 https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=685957
   # ... so we have to set locales manually

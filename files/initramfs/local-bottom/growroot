@@ -10,10 +10,10 @@ prereqs()
 }
 
 case $1 in
-    prereqs) 
-	prereqs
-	exit 0
-	;;
+    prereqs)
+        prereqs
+        exit 0
+        ;;
 esac
 
 . /scripts/functions
@@ -31,29 +31,29 @@ RESTORE_FROM=""
 
 # if a file indicates we should do nothing, then just exit
 for f in /var/lib/cloud/instance/root-grown /etc/growroot-disabled /etc/growroot-grown; do
-	[ -f "${rootmnt}$f" ] && exit 0
+        [ -f "${rootmnt}$f" ] && exit 0
 done
 
 # figure out what disk ROOT is on
 { [ ! -L "${ROOT}" ] && rootdev=${ROOT} || rootdev=$(readlink -f "${ROOT}") ; } || fail "failed to get target of link for ${ROOT}"
 
 case "${rootdev}" in
-	*[0-9]) : ;;
-	# the root is a disk, not a partition (does not end in a digit)
-	# no need to do anything in this case, kernel already knows the full size.
+        *[0-9]) : ;;
+        # the root is a disk, not a partition (does not end in a digit)
+        # no need to do anything in this case, kernel already knows the full size.
     *) exit 0;;
 esac
 
 # remove all consective numbers from the end of rootdev to get 'rootdisk'
 rootdisk=${rootdev}
 while [ "${rootdisk%[0-9]}" != "${rootdisk}" ]; do
-	rootdisk=${rootdisk%[0-9]};
+        rootdisk=${rootdisk%[0-9]};
 done
 partnum=${rootdev#${rootdisk}}
 
 # account for devnameNpP devices (like mmcblk0p1).
-if [ "${rootdisk%[0-9]p}" != "${rootdisk}" ] &&	[ -b "${rootdisk%p}" ]; then
-	rootdisk="${rootdisk%p}"
+if [ "${rootdisk%[0-9]p}" != "${rootdisk}" ] && [ -b "${rootdisk%p}" ]; then
+        rootdisk="${rootdisk%p}"
 fi
 
 # if the basename of the root device (ie 'xvda1' or 'sda1') exists
@@ -76,13 +76,13 @@ ret=$?
 # older versions of growpart would exit '1' on all failure scenarios
 # or with 'no-change-necessary'
 case "$ret:$out" in
-	0:CHANGE:*) :;;
-	[01]:NOCHANGE:*) exit 0;;
-	*) msg "exited '$ret'" "${out}"; exit 1;;
+        0:CHANGE:*) :;;
+        [01]:NOCHANGE:*) exit 0;;
+        *) msg "exited '$ret'" "${out}"; exit 1;;
 esac
 
 # There was something to do, unmount and resize
-umount "${rootmnt}" ||	fail "failed to umount ${rootmnt}";
+umount "${rootmnt}" ||  fail "failed to umount ${rootmnt}";
 
 # Wait for any of the initial udev events to finish
 # This is to avoid any other processes using the block device that the
@@ -91,37 +91,30 @@ udevadm settle --timeout ${ROOTDELAY:-30} || error "GROWROOT: WARNING: udevadm s
 
 echo "GROWROOT : GROWPART ${rootdisk} ${partnum}"
 if out=$(growpart "${rootdisk}" "${partnum}" 2>&1); then
-	case "$out" in
-		CHANGED:*) 
-			echo "GROWROOT: $out"
-			;;
-		NOCHANGE:*)
-			echo "GROWROOT: WARNING: expected to grow partition, but did not"
-			;;
-		*) 
-			echo "GROWROOT: unexpected output: ${out}"
-			;;
-	esac
+        case "$out" in
+                CHANGED:*)
+                        echo "GROWROOT: $out"
+                        ;;
+                NOCHANGE:*)
+                        echo "GROWROOT: WARNING: expected to grow partition, but did not"
+                        ;;
+                *)
+                        echo "GROWROOT: unexpected output: ${out}"
+                        ;;
+        esac
 else
-	echo "GROWROOT: WARNING: resize failed: $out"
+        echo "GROWROOT: WARNING: resize failed: $out"
 fi
 
-# Wait for the partition re-read events to complete 
+# Wait for the partition re-read events to complete
 # so that the root partition is available when we try and mount it.
 udevadm settle --timeout ${ROOTDELAY:-30}
 
-echo "GROWROOT : E2FSCK ${rootdev}"
+echo "GROWROOT: E2FSCK ${rootdev}"
 e2fsck -p -f ${rootdev} >> /dev/null && msg "e2fsck success" || fail "e2fsck failed"
 
-FSTYPE=$(get_fstype "${ROOT}")
-roflag="-w"
-mount ${roflag} ${FSTYPE:+-t ${FSTYPE} }${ROOTFLAGS} ${ROOT} ${rootmnt} || fail "failed to re-mount ${ROOT}. this is bad!"
-
-echo "GROWROOT : RESIZE2FS ${rootdev}"
+echo "GROWROOT: RESIZE2FS ${rootdev}"
 resize2fs ${rootdev} >> /dev/null && msg "resize2fs success" || fail "resize2fs failed"
-
-# There was something to do, unmount and resize
-umount "${rootmnt}" ||	fail "failed to umount ${rootmnt}";
 
 # this is taken from 'mountroot' function, see /usr/share/initramfs-tools/scripts/local
 FSTYPE=$(get_fstype "${ROOT}")
@@ -131,5 +124,5 @@ mount ${roflag} ${FSTYPE:+-t ${FSTYPE} }${ROOTFLAGS} ${ROOT} ${rootmnt} || fail 
 
 # write to /etc/grownroot-grown. most likely this wont work (readonly)
 { date --utc > "${rootmnt}/etc/growroot-grown" ; } >/dev/null 2>&1 || :
-
+echo "GROWROOT: FLAG /etc/growroot-grown"
 # vi: ts=4 noexpandtab

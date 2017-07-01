@@ -44,9 +44,9 @@ if [ "$ENABLE_IFNAMES" = true ] ; then
 fi
 
 # Add package
-display_message "Please wait, first boot : loading package..."
-cat files/firstboot/28-install-package.sh >> "${ETC_DIR}/rc.firstboot"
-chmod +x "${ETC_DIR}/rc.firstboot"
+#~ display_message "Please wait, first boot : loading package..."
+#~ cat files/firstboot/28-install-package.sh >> "${ETC_DIR}/rc.firstboot"
+#~ chmod +x "${ETC_DIR}/rc.firstboot"
 
 # Enable mediacenter.service if Kodi installed
 if [ "$ENABLE_KODI" = true ]; then

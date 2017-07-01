@@ -1,5 +1,5 @@
 #
-# Setup APT repositories
+# Setup Splashscreen
 #
 
 # Load utility functions
@@ -7,14 +7,13 @@
 
 # Fetch and build U-Boot bootloader
 if [ "$ENABLE_SPLASHSCREEN" = true ] ; then
- 
- #Install Splashscreen KBOX
- mkdir -p "${R}/usr/share/plymouth/themes/kbox"
- install_readonly files/splashscreen/themes/kbox/Splash.png "${R}/usr/share/plymouth/themes/kbox/"
- install_readonly files/splashscreen/themes/kbox/kbox.plymouth "${R}/usr/share/plymouth/themes/kbox/"
- install_readonly files/splashscreen/themes/kbox/kbox.script "${R}/usr/share/plymouth/themes/kbox/"
- sed -i "${BOOT_DIR}/cmdline.txt" -e "s/$/ splash/"
- sed -i "${BOOT_DIR}/cmdline.txt" -e "s/$/ plymouth.ignore-serial-consoles/"
- chroot_exec plymouth-set-default-theme -R kbox
-
+  #Install Splashscreen KBOX
+  mkdir -p "${R}/usr/share/plymouth/themes/kbox"
+  install_readonly files/splashscreen/themes/kbox/Splash.png "${R}/usr/share/plymouth/themes/kbox/"
+  install_readonly files/splashscreen/themes/kbox/kbox.plymouth "${R}/usr/share/plymouth/themes/kbox/"
+  install_readonly files/splashscreen/themes/kbox/kbox.script "${R}/usr/share/plymouth/themes/kbox/"
+  sed -i "${BOOT_DIR}/cmdline.txt" -e "s/$/ quiet/"
+  sed -i "${BOOT_DIR}/cmdline.txt" -e "s/$/ splash/"
+  sed -i "${BOOT_DIR}/cmdline.txt" -e "s/$/ plymouth.ignore-serial-consoles/"
+  chroot_exec plymouth-set-default-theme -R kbox
 fi

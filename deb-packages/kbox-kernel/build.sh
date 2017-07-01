@@ -2,7 +2,7 @@
 pushd $(dirname "$0")
 . ../../functions.sh
 
-[ ! $1 ] && echo "Architecture not found , please add argument (rbp | rbp2 | rbp3)" && exit
+[ ! $1 ] && echo "Architecture not found , please add argument (rbp1 | rbp2 | rbp3 | rbp3_64)" && exit
 build_env $1
 
 rm -rf kbox-* linux-*  *-tmp
@@ -25,8 +25,11 @@ make -C "linux" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" mrproper
 # Load default raspberry kernel configuration
 make -C "linux" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" "${KERNEL_DEFCONFIG}"
 
+[ "$1" = "rbp3_64" ] && KERNEL_IMAGE=Image.gz || KERNEL_IMAGE=zImage
+
 # Cross compile kernel and modules
-make deb-pkg -C "linux" -j${KERNEL_THREADS} ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" zImage modules dtbs && echo "Make and package successful" || echo "Kernel make failed"
+#~ #make -C "linux" -j${KERNEL_THREADS} ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" ${KERNEL_IMAGE} modules dtbs && echo "Make and package successful" || echo "Kernel make failed"
+make deb-pkg -C "linux" -j4 ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" ${KERNEL_IMAGE} modules dtbs && echo "Make and package successful" || echo "Kernel make failed"
 
 # Create metapackage
 version=`cat "linux/include/config/kernel.release"`

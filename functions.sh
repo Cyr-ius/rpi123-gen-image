@@ -77,6 +77,11 @@ chroot_remove_cc() {
     COMPILER_PACKAGES=""
   fi
 }
+
+install_dpkg() {
+    cp $* ${R}/tmp
+    chroot_exec dpkg --unpack /tmp/$(basename $*)
+}
 install_deb() {
   # Install debian packages
   chroot_exec apt-get -o Dpkg::Options::="--force-confnew" -q -y --allow-unauthenticated --no-install-recommends install $*
@@ -155,6 +160,12 @@ create_fs_tarball() {
 	popd
 }
 build_env() {
+        TOOLS_DIR=$(pwd)/$(dirname $BASH_SOURCE)/tools
+          if [ $(uname -m) = "x86_64" ]; then 
+            [ -d $TOOLS_DIR/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin ] && PATH=$TOOLS_DIR/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH
+          else
+            [ -d $TOOLS_DIR/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin ] && PATH=$TOOLS_DIR/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin:$PATH
+          fi
         case $1 in
           rbp|rbp1|armel)
             RPI_MODEL=1
@@ -162,6 +173,7 @@ build_env() {
             RELEASE_ARCH=armel
             KERNEL_ARCH=arm
             CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabi}
+            [ -d $TOOLS_DIR/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin ] && PATH=$TOOLS_DIR/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin:$PATH && CROSS_COMPILE=arm-bcm2708-linux-gnueabi            
             DTB_FILE=${DTB_FILE:=bcm2708-rpi-b-plus.dtb}
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel.img}

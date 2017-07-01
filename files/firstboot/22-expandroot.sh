@@ -63,6 +63,4 @@ w
 EOF2
 
 # Reload the partition table, resize root filesystem then remove resizing code from this file
-partprobe &&
-  resize2fs /dev/${ROOT_PART} &&
-  logger -t "rc.firstboot" "Root partition successfully resized."
+partprobe && resize2fs /dev/${ROOT_PART} && logger -t "rc.firstboot" "Root partition successfully resized."

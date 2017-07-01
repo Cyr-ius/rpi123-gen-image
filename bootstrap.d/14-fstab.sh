@@ -36,6 +36,7 @@ if [ "$ENABLE_INITRAMFS" = true ]; then
   if [ "$ENABLE_CRYPTFS" = true ] ; then
     # Include initramfs scripts to auto expand encrypted root partition
     if [ "$EXPANDROOT" = true ] ; then
+      install_exec files/usr/bin/growpart "${R}/usr/bin"
       install_exec files/initramfs/expand_encrypted_rootfs "${ETC_DIR}/initramfs-tools/scripts/init-premount/expand_encrypted_rootfs"
       install_exec files/initramfs/expand-premount "${ETC_DIR}/initramfs-tools/scripts/local-premount/expand-premount"
       install_exec files/initramfs/expand-tools "${ETC_DIR}/initramfs-tools/hooks/expand-tools"
@@ -58,6 +59,7 @@ EOF
   
     # Generate initramfs without encrypted root partition support
     if [ "$EXPANDROOT" = true ] ; then
+      install_exec files/usr/bin/growpart "${R}/usr/bin"
       install_exec files/initramfs/local-bottom/growroot "${ETC_DIR}/initramfs-tools/scripts/local-bottom/"
       install_exec files/initramfs/growroot-tools "${ETC_DIR}/initramfs-tools/hooks/"
     fi

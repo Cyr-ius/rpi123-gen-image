@@ -1,0 +1,10 @@
+prefix=/home/cyr-ius/rpi123-gen-image/deb-packages/kbox-libcec/depends
+libdir=/home/cyr-ius/rpi123-gen-image/deb-packages/kbox-libcec/depends/lib
+includedir=/home/cyr-ius/rpi123-gen-image/deb-packages/kbox-libcec/depends/include
+DEPENDENCIES=-lpthread
+
+Name: p8-platform
+Description: Pulse-Eight platform support library 2.1
+Version: 2.1.0
+Libs: -L${libdir} -lp8-platform
+Cflags: -I${includedir}

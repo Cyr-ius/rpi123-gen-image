@@ -2,7 +2,7 @@
 pushd $(dirname "$0")
 . ../../functions.sh
 
-VERSION="1.1"
+VERSION="1.2"
 
 [ ! $1 ] && echo "Architecture not found , please add argument (rbp1 | rbp2 | rbp3)" && exit
 build_env $1
@@ -13,7 +13,8 @@ rm -rf ply-lite* *-tmp
 cp -r files files-tmp
 pushd src
 make clean
-CROSS="${CROSS_COMPILE}" CROSS_COMPILE="${CROSS_COMPILE}-" make
+NEON=${NEON:=off}
+CROSS_COMPILE="${CROSS_COMPILE}" NEON="${NEON}" make
 cp ply-image checkmodifier splash_early splash.png splash_sad.png ../files-tmp
 make clean
 popd

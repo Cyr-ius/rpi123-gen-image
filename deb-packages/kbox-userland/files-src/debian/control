@@ -1,10 +1,10 @@
-Source: kbox-userland-src
+Source: rpi-userland-src
 Section: libs
 Priority: required
 Maintainer: Cyr-ius <cyr-ius@ipocus.net>
 Homepage: https://github.com/cyr-ius/rpi23-gen-image
 
-Package: kbox-userland-src
+Package: rpi-userland-src
 Architecture: all
 Description: Raspberry Pi userland package with headers
 Depends: ${misc:Depends}

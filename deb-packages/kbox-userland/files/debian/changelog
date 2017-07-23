@@ -1,6 +1,6 @@
-kbox-userland (1.0) stable; urgency=medium
+rpi-userland (1.0) stable; urgency=medium
 
-  * Create userland for KBox
+  * Create userland for Raspberry Pi
 
- -- Cyr-ius <cyr-ius@ipocus.net>  Sat, 8 Apr 2017 17:20:01 +0000
+ -- Cyr-ius <cyr-ius@ipocus.net>  Sat, 16 Jul 2017 17:20:01 +0000
 

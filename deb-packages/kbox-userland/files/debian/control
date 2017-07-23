@@ -1,11 +1,11 @@
-Source: kbox-userland
+Source: rpi-userland
 Section: libs
 Priority: required
 Maintainer: Cyr-ius <cyr-ius@ipocus.net>
 Build-Depends: debhelper (>= 8.0.0)
 Homepage: https://github.com/cyr-ius/rpi23-gen-image
 
-Package: kbox-userland
+Package: rpi-userland
 Architecture: all
 Depends: ${misc:Depends}
 Description: Raspberry Pi userland package

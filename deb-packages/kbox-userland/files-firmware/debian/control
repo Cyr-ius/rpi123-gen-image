@@ -1,10 +1,10 @@
-Source: kbox-linux
+Source: rpi-firmware
 Section: kernel
 Priority: required
 Maintainer: Cyr-ius <cyr-ius@ipocus.net>
 Homepage: https://github.com/cyr-ius/rpi23-gen-image
 
-Package: kbox-linux
+Package: rpi-firmware
 Architecture: armhf
-Description: Kernel for Raspberry Pi metapackage
+Description: Metapackage for kernel Raspberry Pi
 Depends: ${misc:Depends}

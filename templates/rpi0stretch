@@ -1,0 +1,3 @@
+# Configuration template file used by rpi123-gen-image.sh
+RPI_MODEL=0
+APT_INCLUDES_KERNEL="rpi1-firmware"

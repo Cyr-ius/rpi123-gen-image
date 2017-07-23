@@ -1,10 +1,10 @@
 # Configuration template file used by rpi23-gen-image.sh
 RPI_MODEL=3
 APT_INCLUDES="irqbalance"
-APT_INCLUDES_KERNEL="kbox-linux"
+APT_INCLUDES_KERNEL="rpi2-firmware"
 DEFLOCAL="fr_FR.UTF-8"
 TIMEZONE="Europe/Paris"
-HOSTNAME="kbox"
+HOST_NAME="kbox"
 XKB_MODEL="pc105"
 XKB_LAYOUT="fr"
 XKB_VARIANT="oss"

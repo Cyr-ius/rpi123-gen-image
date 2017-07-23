@@ -1,9 +1,0 @@
-Package: arm-mem
-Version: 1.0.5
-Architecture: armel
-Maintainer: Cyr-ius <cyr-ius@ipocus.net>
-Installed-Size: 50
-Section: admin
-Priority: required
-Homepage: https://github.com/cyr-ius/rpi23-gen-image
-Description: ARM-accelerated versions of selected functions from <string.h>

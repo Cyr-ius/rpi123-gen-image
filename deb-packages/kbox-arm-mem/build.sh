@@ -29,5 +29,5 @@ cd ..
 mkdir -p ../packages
 mv arm-mem* ../packages
 
-#~ rm -rf arm-mem* *-tmp
+rm -rf arm-mem* *-tmp
 popd

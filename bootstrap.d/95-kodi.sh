@@ -12,7 +12,6 @@ if [ "$ENABLE_KODI" = true ] ; then
   install_exec files/kodi/checkmodifier "${R}/sbin/"  
   install_exec files/kodi/mediacenter "${R}/usr/bin/"
   install_readonly files/kodi/mediacenter.service "${R}/lib/systemd/system/"
-  chroot_exec systemctl enable mediacenter.service
   [ ! -d "${R}/usr/share/ply-lite" ] && mkdir  -p "${R}/usr/share/ply-lite"
   install_readonly files/kodi/splash_sad.png "${R}/usr/share/ply-lite/"
   install_exec files/kodi/ply-image "${R}/bin/ply-image"

@@ -160,26 +160,36 @@ create_fs_tarball() {
 	popd
 }
 build_env() {
-        TOOLS_DIR=$(pwd)/$(dirname $BASH_SOURCE)/tools
-          if [ $(uname -m) = "x86_64" ]; then 
-            [ -d $TOOLS_DIR/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin ] && PATH=$TOOLS_DIR/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH
+        PATH_XCOMPILE="$(pwd)/$(dirname $BASH_SOURCE)/tools"
+          if [ "$(uname -m)" = "x86_64" ]; then 
+            [ -d "$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin" ] && PATH=$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH
           else
-            [ -d $TOOLS_DIR/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin ] && PATH=$TOOLS_DIR/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin:$PATH
+            [ -d "$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin" ] && PATH=$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin:$PATH
           fi
         case $1 in
-          rbp|rbp1|armel)
-            RPI_MODEL=1
+          0)
+            RPI_MODEL=$1
             KERNEL_DEFCONFIG=bcmrpi_defconfig
-            RELEASE_ARCH=armel
+            RELEASE_ARCH=armhf
             KERNEL_ARCH=arm
-            CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabi}
-            [ -d $TOOLS_DIR/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin ] && PATH=$TOOLS_DIR/arm-bcm2708/arm-bcm2708-linux-gnueabi/bin:$PATH && CROSS_COMPILE=arm-bcm2708-linux-gnueabi            
-            DTB_FILE=${DTB_FILE:=bcm2708-rpi-b-plus.dtb}
+            CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf}
+            DTB_FILE=${DTB_FILE:=bcm2708-rpi-0.dtb}
+            [ "$ENABLE_WIRELESS" = true ] && DTB_FILE=${DTB_FILE:=bcm2708-rpi-0-w.dtb}
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel.img}
             ;;
-          rbp2|armhf)
-            RPI_MODEL=2
+          1)
+            RPI_MODEL=$1
+            KERNEL_DEFCONFIG=bcmrpi_defconfig
+            RELEASE_ARCH=armhf
+            KERNEL_ARCH=arm
+            CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf}
+            DTB_FILE=${DTB_FILE:=bcm2708-rpi-b-plus.dtb}
+            UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_defconfig}
+            KERNEL_IMAGE=${KERNEL_IMAGE:=kernel.img}
+            ;;            
+          2)
+            RPI_MODEL=$1
             KERNEL_DEFCONFIG=bcm2709_defconfig            
             RELEASE_ARCH=armhf
             KERNEL_ARCH=arm            
@@ -188,8 +198,8 @@ build_env() {
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_2_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
             ;;
-          rbp3)
-            RPI_MODEL=3
+          3)
+            RPI_MODEL=$1
             KERNEL_DEFCONFIG=bcm2709_defconfig            
             RELEASE_ARCH=armhf
             KERNEL_ARCH=arm            
@@ -198,8 +208,8 @@ build_env() {
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_3_32b_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
             ;;               
-          rbp3_64|arm64)
-            RPI_MODEL=3_64
+          3x64)
+            RPI_MODEL=$1
             KERNEL_DEFCONFIG=bcmrpi3_defconfig           
             RELEASE_ARCH=arm64
             KERNEL_ARCH=arm64            

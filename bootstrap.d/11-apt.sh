@@ -15,8 +15,8 @@ fi
 install_readonly files/apt/sources.list "${ETC_DIR}/apt/sources.list"
 
 # Use specified APT server and release
-sed -i "s/\/ftp.debian.org\//\/${APT_SERVER}\//" "${ETC_DIR}/apt/sources.list"
-sed -i "s/ stretch/ ${RELEASE}/" "${ETC_DIR}/apt/sources.list"
+sed -i "s|APT_SERVER|${APT_SERVER}|" "${ETC_DIR}/apt/sources.list"
+sed -i "s/RELEASE/${RELEASE}/" "${ETC_DIR}/apt/sources.list"
 
 
 # Allow the installation of non-free Debian packages
@@ -25,8 +25,8 @@ if [ "$ENABLE_NONFREE" = true ] ; then
 fi
 
 # Add Ipocus depot
-if [ ! -f "${ETC_DIR}/apt/preferences.d/100ipocus-stable" ]; then
- install_readonly files/apt/package.ipocus.net.asc "${ETC_DIR}/apt/"
+if [ ! -f "${ETC_DIR}/apt/preferences.d/100ipocus-stable" ];  then
+install_readonly files/apt/package.ipocus.net.asc "${ETC_DIR}/apt/"
  chroot_exec <<EOF
 HOME=/root gpg --import /etc/apt/package.ipocus.net.asc /root/.gnupg
 HOME=/root gpg -a --export 300BFF2BE9E1998C /root/.gnupg | apt-key add -

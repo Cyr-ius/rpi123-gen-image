@@ -5,6 +5,12 @@
 # Load utility functions
 . ./functions.sh
 
+# Download Firmware source if url is not empty
+if [ -n "$FIRMWARE_URL" ] && [ -n "$RPI_FIRMWARE_DIR" ] ;then
+  pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
+  chmod ugo+rw "${RPI_FIRMWARE_DIR}"
+fi
+
 if [ "$BUILD_KERNEL" = true  ] ; then
 {
   if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ]; then
@@ -165,13 +171,13 @@ install_readonly files/modules/raspi-blacklist.conf "${ETC_DIR}/modprobe.d/raspi
 # Install sysctl.d configuration files
 install_readonly files/sysctl.d/81-rpi-vm.conf "${ETC_DIR}/sysctl.d/81-rpi-vm.conf"
 
-if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
+if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] && [ -z $APT_INCLUDES_KERNEL ] ; then
   # Move downloaded firmware binary blob
-  if [ "$RPI_MODEL" = 1 ] ; then
-    cp -r "${RPI_FIRMWARE_DIR}/opt/vc" "${R}/opt"
-  else
+  #~ if [ "$RPI_MODEL" = 1 ] ; then
+    #~ cp -r "${RPI_FIRMWARE_DIR}/opt/vc" "${R}/opt"
+  #~ else
     cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
-  fi
+  #~ fi
   # Install VC libraries
   echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
 fi

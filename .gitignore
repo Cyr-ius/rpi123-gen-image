@@ -1,13 +1,8 @@
 images
 custom.d
-packages
-kernel-packages
 *.swp
 *.bak
 *.log
-config
-linux
-firmware
 tools
 noobs
 bootstrap.d/flags

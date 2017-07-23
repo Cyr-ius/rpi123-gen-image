@@ -6,7 +6,9 @@
 . ./functions.sh
 
 #Locate to syslog
-sed -i "s|messages|syslog|g" "${ETC_DIR}/rsyslog.conf"
+if [ -e "${ETC_DIR}/rsyslog.conf" ]; then
+  sed -i "s|messages|syslog|g" "${ETC_DIR}/rsyslog.conf"
+fi
 
 # Disable rsyslog
 if [ "$ENABLE_RSYSLOG" = false ] ; then

@@ -1,6 +1,6 @@
 [Actions for pi user]
 Identity=unix-user:kodi
-Action=Action=org.freedesktop.upower.*;org.freedesktop.consolekit.system.*;org.f?reedesktop.udisks.*
+Action=org.freedesktop.login1.*
 ResultActive=yes
 ResultAny=yes
-ResultInactive=no
+ResultInactive=yes

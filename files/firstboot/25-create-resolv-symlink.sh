@@ -8,7 +8,7 @@ fi
 
 # Create resolv.conf file if it does not exists
 if [ ! -f "/run/systemd/resolve/resolv.conf" ] ; then
-  touch /run/systemd/resolve/resolv.conf
+  touch /run/systemd/resolve/resolv.conf || echo "systemd-resolved not found"
 fi
 
 # Create symlink to /etc/reolv.conf if not exists yet

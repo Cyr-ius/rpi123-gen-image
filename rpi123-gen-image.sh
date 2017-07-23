@@ -44,11 +44,11 @@ set -x
 
 # Default Raspberry Pi model configuration
 RPI_MODEL=${RPI_MODEL:=2}
-if [[ ! "$RPI_MODEL" =~ "1"|"2"|"3"|"3_64" ]];then
+if [[ ! "$RPI_MODEL" =~ "0"|"1"|"2"|"3"|"3x64" ]];then
   echo "error: Raspberry Pi model ${RPI_MODEL} is not supported!"
   exit 1
 else
-  build_env rbp$RPI_MODEL
+  build_env $RPI_MODEL
 fi
 
 # Debian release
@@ -82,12 +82,13 @@ KERNEL_DIR="${R}/usr/src/linux"
 WLAN_FIRMWARE_DIR="${R}/lib/firmware/brcm"
 
 # Firmware directory: Blank if download from github
-RPI_FIRMWARE_DIR=${RPI_FIRMWARE_DIR:=""}
-TOOLS_DIR=${TOOLS_DIR:=""}
+RPI_FIRMWARE_DIR=${RPI_FIRMWARE_DIR:=${BUILDDIR}/firmware}
+TOOLS_DIR=${TOOLS_DIR:=$(pwd)/tools}
 DEB_PACKAGES=${DEB_PACKAGES:="$(pwd)/deb-packages"}
 
 # General settings
-HOSTNAME=${HOSTNAME:=gen-img}
+HOST_NAME=${HOST_NAME:=rbp${RPI_MODEL}}
+USER_NAME=${USER_NAME:="pi"}
 PASSWORD=${PASSWORD:=raspberry}
 USER_PASSWORD=${USER_PASSWORD:=raspberry}
 DEFLOCAL=${DEFLOCAL:="en_US.UTF-8"}
@@ -96,7 +97,7 @@ EXPANDROOT=${EXPANDROOT:=true}
 
 # Prepare date string for default image file name
 DATE="$(date +%Y-%m-%d)"
-IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-${HOSTNAME}-rpi${RPI_MODEL}-${RELEASE}}
+IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-${HOST_NAME}-${RPI_MODEL}-${RELEASE}}
 
 # Keyboard settings
 XKB_MODEL=${XKB_MODEL:=""}
@@ -118,9 +119,11 @@ NET_NTP_2=${NET_NTP_2:=""}
 
 # APT settings
 APT_PROXY=${APT_PROXY:=""}
-APT_SERVER=${APT_SERVER:="ftp.debian.org"}
+#~ APT_SERVER=${APT_SERVER:="http://ftp.debian.org/debian"}
+APT_SERVER=${APT_SERVER:="http://mirrordirector.raspbian.org/raspbian"}
 
 # Feature settings
+ENABLE_FIRMWARE=${ENABLE_FIRMWARE:=true}
 ENABLE_CONSOLE=${ENABLE_CONSOLE:=true}
 ENABLE_I2C=${ENABLE_I2C:=false}
 ENABLE_SPI=${ENABLE_SPI:=false}
@@ -136,7 +139,6 @@ ENABLE_XORG=${ENABLE_XORG:=false}
 ENABLE_WM=${ENABLE_WM:=""}
 ENABLE_RSYSLOG=${ENABLE_RSYSLOG:=true}
 ENABLE_USER=${ENABLE_USER:=true}
-USER_NAME=${USER_NAME:="pi"}
 ENABLE_ROOT=${ENABLE_ROOT:=false}
 ENABLE_SPLASHSCREEN=${ENABLE_SPLASHSCREEN:=false}
 ENABLE_KODI=${ENABLE_KODI:=false}
@@ -232,20 +234,6 @@ if [ "$CLEAN" = true ]; then
   [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
   [ -d "custom.d/flags" ] && rm -rf custom.d/flags
   [ -d "${BUILDDIR}/chroot" ] && rm -rf "${BUILDDIR}/chroot"
-fi
-
-# Check if the internal wireless interface is supported by the RPi model
-if [ "$ENABLE_WIRELESS" = true ] && [ "$RPI_MODEL" != 3 ] ; then
-  echo "error: The selected Raspberry Pi model has no internal wireless interface"
-  exit 1
-fi
-
-# Check if DISABLE_UNDERVOLT_WARNINGS parameter value is supported
-if [ ! -z "$DISABLE_UNDERVOLT_WARNINGS" ] ; then
-  if [ "$DISABLE_UNDERVOLT_WARNINGS" != 1 ] && [ "$DISABLE_UNDERVOLT_WARNINGS" != 2 ] ; then
-    echo "error: DISABLE_UNDERVOLT_WARNINGS=${DISABLE_UNDERVOLT_WARNINGS} is not supported"
-    exit 1
-  fi
 fi
 
 # Add packages required for kernel cross compilation
@@ -364,6 +352,11 @@ if [ "$ENABLE_KODI" = true ] ; then
   APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-pvr-* kodi-visualization-* kodi-audiodecoder-* kodi-audioencoder-* kodi-inputstream-* policykit-1 fbset libsmbclient libcap2-bin connman"
 fi
 
+if [ "$ENABLE_WIRELESS" = true ]; then
+  APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb"
+  #~ APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb firmware-brcm80211"
+fi
+
 # Replace selected packages with smaller clones
 if [ "$ENABLE_REDUCE" = true ] ; then
   # Add levee package instead of vim-tiny
@@ -455,32 +448,16 @@ if [ -r "/dev/mapping/${CRYPTFS_MAPPING}" ] ; then
   exit 1
 fi
 
-# Pull Firmware source if url is not empty
-if [ ! -z $FIRMWARE_URL ] && [ -z "$RPI_FIRMWARE_DIR" ];then
-  echo "Pull firmware source"
-  RPI_FIRMWARE_DIR="$(pwd)/firmware"
-  pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
-  chmod ugo+rw "${RPI_FIRMWARE_DIR}"
-fi
-
-# Pull Kernel source if url is not empty
-if [ ! -z $KERNEL_URL ] && [ -z "$KERNELSRC_DIR" ];then
-  echo "Pull kernel source"
-  KERNELSRC_DIR="$(pwd)/linux"
-  pull_source "${KERNEL_URL}" "${KERNELSRC_DIR}"
-  chmod ugo+rw "${KERNELSRC_DIR}"
-fi
-
 # Pull Tools source if url is not empty
-if [ ! -z $TOOLS_URL ] && [ -z "$TOOLS_DIR" ];then
+if [ -n "$TOOLS_URL" ]; then
   echo "Pull tools source"
-  TOOLS_DIR="$(pwd)/tools"
   pull_source "${TOOLS_URL}" "${TOOLS_DIR}"
   chmod ugo+rw "${TOOLS_DIR}"
 fi
 
 # Setup chroot directory
 mkdir -p "${R}"
+chmod ugo+rw "${R}"
 
 # Check if build directory has enough of free disk space >512MB
 if [ "$(df --output=avail ${BUILDDIR} | sed "1d")" -le "524288" ] ; then
@@ -570,6 +547,12 @@ rm -f "${R}/var/lib/urandom/random-seed"
 rm -f "${R}/initrd.img"
 rm -f "${R}/vmlinuz"
 rm -f "${R}${QEMU_BINARY}"
+
+#Fix preload ARM-MEM
+if [ -f "${R}/usr/lib/libarmmem.a" ] && [ -f "${R}/usr/lib/libarmmem.so" ]; then
+  if [ -e "${ETC_DIR}/ld.so.preload" ]; then sed '/^\/usr\/lib\/libarmmem.so$/d' -i "${ETC_DIR}/ld.so.preload"; fi
+  echo "/usr/lib/libarmmem.so" >> "${ETC_DIR}/ld.so.preload"
+fi
 
 #Create TAR Filesystem
 if [ "$CREATE_TARBALL" = true ] ; then

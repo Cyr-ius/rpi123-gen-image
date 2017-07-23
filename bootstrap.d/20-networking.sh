@@ -5,22 +5,28 @@
 # Load utility functions
 . ./functions.sh
 
+if [ "$ENABLE_WIRELESS" = true ]; then
+  ETH_IF=wlan
+else
+  ETH_IF=eth
+fi 
 # Install and setup hostname
-install_readonly files/network/hostname "${ETC_DIR}/hostname"
-sed -i "s/^rpi2-jessie/${HOSTNAME}/" "${ETC_DIR}/hostname"
+#~ install_readonly files/network/hostname "${ETC_DIR}/hostname"
+#~ sed -i "s/^rpi2-jessie/${HOST_NAME}/" "${ETC_DIR}/hostname"
+echo "${HOST_NAME}" > "${ETC_DIR}/hostname"
 
 # Install and setup hosts
 install_readonly files/network/hosts "${ETC_DIR}/hosts"
-sed -i "s/rpi2-jessie/${HOSTNAME}/" "${ETC_DIR}/hosts"
+sed -i "s/rpi2-jessie/${HOST_NAME}/" "${ETC_DIR}/hosts"
 
 # Setup hostname entry with static IP
-if [ "$NET_ADDRESS" != "" ] ; then
+if [ "$NET_ADDRESS" != "" ]; then
   NET_IP=$(echo "${NET_ADDRESS}" | cut -f 1 -d'/')
   sed -i "s/^127.0.1.1/${NET_IP}/" "${ETC_DIR}/hosts"
 fi
 
 # Remove IPv6 hosts
-if [ "$ENABLE_IPV6" = false ] ; then
+if [ "$ENABLE_IPV6" = false ]; then
   sed -i -e "/::[1-9]/d" -e "/^$/d" "${ETC_DIR}/hosts"
 fi
 
@@ -28,37 +34,38 @@ fi
 install_readonly files/network/interfaces "${ETC_DIR}/network/interfaces"
 
 # Install configuration for interface eth0
-install_readonly files/network/eth.network "${ETC_DIR}/systemd/network/eth.network"
+  install_readonly files/network/$ETH_IF.network "${ETC_DIR}/systemd/network/$ETH_IF.network"
 
-if [ "$ENABLE_DHCP" = true ] ; then
-  # Enable DHCP configuration for interface eth0
-  sed -i -e "s/DHCP=.*/DHCP=yes/" -e "/DHCP/q" "${ETC_DIR}/systemd/network/eth.network"
-
+if [ "$ENABLE_DHCP" = true ]; then
+  
+    # Enable DHCP configuration for interface eth0
+    sed -i -e "s/DHCP=.*/DHCP=yes/" -e "/DHCP/q" "${ETC_DIR}/systemd/network/$ETH_IF.network"
+  
   # Set DHCP configuration to IPv4 only
-  if [ "$ENABLE_IPV6" = false ] ; then
-    sed -i "s/DHCP=.*/DHCP=v4/" "${ETC_DIR}/systemd/network/eth.network"
+  if [ "$ENABLE_IPV6" = false ]; then
+    sed -i "s/DHCP=.*/DHCP=v4/" "${ETC_DIR}/systemd/network/$ETH_IF.network"
   fi
 
 else # ENABLE_DHCP=false
   # Set static network configuration for interface eth0
-  sed -i\
-  -e "s|DHCP=.*|DHCP=no|"\
-  -e "s|Address=\$|Address=${NET_ADDRESS}|"\
-  -e "s|Gateway=\$|Gateway=${NET_GATEWAY}|"\
-  -e "0,/DNS=\$/ s|DNS=\$|DNS=${NET_DNS_1}|"\
-  -e "0,/DNS=\$/ s|DNS=\$|DNS=${NET_DNS_2}|"\
-  -e "s|Domains=\$|Domains=${NET_DNS_DOMAINS}|"\
-  -e "0,/NTP=\$/ s|NTP=\$|NTP=${NET_NTP_1}|"\
-  -e "0,/NTP=\$/ s|NTP=\$|NTP=${NET_NTP_2}|"\
-  "${ETC_DIR}/systemd/network/eth.network"
+    sed -i\
+    -e "s|DHCP=.*|DHCP=no|"\
+    -e "s|Address=\$|Address=${NET_ADDRESS}|"\
+    -e "s|Gateway=\$|Gateway=${NET_GATEWAY}|"\
+    -e "0,/DNS=\$/ s|DNS=\$|DNS=${NET_DNS_1}|"\
+    -e "0,/DNS=\$/ s|DNS=\$|DNS=${NET_DNS_2}|"\
+    -e "s|Domains=\$|Domains=${NET_DNS_DOMAINS}|"\
+    -e "0,/NTP=\$/ s|NTP=\$|NTP=${NET_NTP_1}|"\
+    -e "0,/NTP=\$/ s|NTP=\$|NTP=${NET_NTP_2}|"\
+    "${ETC_DIR}/systemd/network/eth.network"
 fi
 
-# Remove empty settings from network configuration
-sed -i "/.*=\$/d" "${ETC_DIR}/systemd/network/eth.network"
+  # Remove empty settings from network configuration
+  sed -i "/.*=\$/d" "${ETC_DIR}/systemd/network/$ETH_IF.network"
 
 # Move systemd network configuration if required by Debian release
-if [ "$RELEASE" = "stretch" ] ; then
-  mv -v "${ETC_DIR}/systemd/network/eth.network" "${LIB_DIR}/systemd/network/10-eth.network"
+if [ "$RELEASE" = "stretch" ]; then
+  mv -v "${ETC_DIR}/systemd/network/$ETH_IF.network" "${LIB_DIR}/systemd/network/10-$ETH_IF.network"
   rm -fr "${ETC_DIR}/systemd/network"
 fi
 
@@ -83,7 +90,17 @@ if [ "NET_NTP_1" != "" ] ; then
 fi
 
 # Download the firmware binary blob required to use the RPi3 wireless interface
-if [ "$ENABLE_WIRELESS" = true ] ; then
+if [ "$ENABLE_WIRELESS" = true ]; then
+  # Disable IPv6
+  if [ "$ENABLE_IPV6" = false ]; then
+    install_readonly files/etc/modprobe.d/ipv6.conf "${ETC_DIR}/modprobe.d/"
+  fi
+  
+  touch "${ETC_DIR}/wpa_supplicant/wpa_supplicant-wlan0.conf"
+  
+  #Enable wpa_supplicant service
+  chroot_exec systemctl enable wpa_supplicant@wlan0.service
+  
   if [ ! -d ${WLAN_FIRMWARE_DIR} ] ; then
     mkdir -p ${WLAN_FIRMWARE_DIR}
   fi

@@ -94,16 +94,20 @@ if out=$(growpart "${rootdisk}" "${partnum}" 2>&1); then
         case "$out" in
                 CHANGED:*)
                         echo "GROWROOT: $out"
+                        msg "$out"
                         ;;
                 NOCHANGE:*)
                         echo "GROWROOT: WARNING: expected to grow partition, but did not"
+                        msg "WARNING: expected to grow partition, but did not"
                         ;;
                 *)
                         echo "GROWROOT: unexpected output: ${out}"
+                        msg "unexpected output: ${out}"
                         ;;
         esac
 else
         echo "GROWROOT: WARNING: resize failed: $out"
+        msg "WARNING: resize failed: $out"
 fi
 
 # Wait for the partition re-read events to complete
@@ -111,10 +115,14 @@ fi
 udevadm settle --timeout ${ROOTDELAY:-30}
 
 echo "GROWROOT: E2FSCK ${rootdev}"
-e2fsck -p -f ${rootdev} >> /dev/null && msg "e2fsck success" || fail "e2fsck failed"
+msg "E2FSCK ${rootdev}"
+#~ e2fsck -p -f ${rootdev} >> /dev/null && msg "e2fsck success" || fail "e2fsck failed"
+e2fsck -p -f ${rootdev}
 
 echo "GROWROOT: RESIZE2FS ${rootdev}"
-resize2fs ${rootdev} >> /dev/null && msg "resize2fs success" || fail "resize2fs failed"
+msg "RESIZE2FS ${rootdev}"
+#~ resize2fs ${rootdev} >> /dev/null && msg "resize2fs success" || fail "resize2fs failed"
+resize2fs -f ${rootdev} 
 
 # this is taken from 'mountroot' function, see /usr/share/initramfs-tools/scripts/local
 FSTYPE=$(get_fstype "${ROOT}")

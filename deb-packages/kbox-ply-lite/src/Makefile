@@ -5,9 +5,9 @@ DEPENDS=$(shell pwd)/depends
 PC=$(shell pwd)
 LIBPNG=libpng-1.6.30
 ply-image: libpng ply-image.c ply-frame-buffer.c checkmodifier.c Makefile
-	$(CC) ply-image.c ply-frame-buffer.c -lm -L./depends/lib -I./depends/include -lz -lpng16 -o ply-image
+	$(CC) ply-image.c ply-frame-buffer.c -lm -L./depends/lib -I./depends/include -lz -lpng16 -O3 -o ply-image
 	$(STRIP) ply-image
-	$(CC) checkmodifier.c -o checkmodifier
+	$(CC) checkmodifier.c -O3 -o checkmodifier
 	$(STRIP) checkmodifier
 
 zlib:
@@ -18,7 +18,9 @@ zlib:
 libpng: zlib
 	wget ftp://ftp-osl.osuosl.org/pub/libpng/src/libpng16/$(LIBPNG).tar.gz
 	tar -xvf $(LIBPNG).tar.gz
-	cd $(LIBPNG);LDFLAGS="-L$(DEPENDS)/lib" ./configure --prefix=$(DEPENDS) --host=$(CROSS_COMPILE) --enable-arm-neon=$(NEON) && make && make install
+	cd $(LIBPNG);CFLAGS="-I$(DEPENDS)/include"  LDFLAGS="-L$(DEPENDS)/lib" ./configure --prefix=$(DEPENDS) --host=$(CROSS_COMPILE) --enable-arm-neon=$(NEON); \
+	make ;\
+	make install
 
 install:
 	$(INSTALL) -d $(DESTDIR)/sbin

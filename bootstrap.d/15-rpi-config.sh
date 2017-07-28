@@ -173,11 +173,7 @@ install_readonly files/sysctl.d/81-rpi-vm.conf "${ETC_DIR}/sysctl.d/81-rpi-vm.co
 
 if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] && [ -z $APT_INCLUDES_KERNEL ] ; then
   # Move downloaded firmware binary blob
-  #~ if [ "$RPI_MODEL" = 1 ] ; then
-    #~ cp -r "${RPI_FIRMWARE_DIR}/opt/vc" "${R}/opt"
-  #~ else
-    cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
-  #~ fi
+  cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
   # Install VC libraries
   echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
 fi

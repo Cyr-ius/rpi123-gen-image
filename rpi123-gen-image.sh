@@ -206,7 +206,7 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES} apt-transport-https apt-utils ca-certificates debian-archive-keyring dialog sudo systemd sysvinit-utils fake-hwclock net-tools bash-completion systemd-sysv"
+APT_INCLUDES="${APT_INCLUDES} apt-transport-https apt-utils ca-certificates debian-archive-keyring dialog sudo systemd sysvinit-utils fake-hwclock net-tools bash-completion systemd-sysv raspi-copies-and-fills"
 
 # Packages required for bootstrapping
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc psmisc dbus sudo"
@@ -293,7 +293,7 @@ fi
 
 # Add required packages for the minbase installation
 if [ "$ENABLE_MINBASE" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} vim-tiny netbase net-tools ifupdown"
+  APT_INCLUDES="${APT_INCLUDES} vim-tiny netbase net-tools ifupdown rsyslog logrotate"
 fi
 
 # Add required locales packages
@@ -353,8 +353,8 @@ if [ "$ENABLE_KODI" = true ] ; then
 fi
 
 if [ "$ENABLE_WIRELESS" = true ]; then
-  APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb"
-  #~ APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb firmware-brcm80211"
+  #~ APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb"
+  APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb firmware-brcm80211"
 fi
 
 # Replace selected packages with smaller clones
@@ -521,6 +521,15 @@ MACHINE_ID=$(dbus-uuidgen)
 echo -n "${MACHINE_ID}" > "${R}/var/lib/dbus/machine-id"
 echo -n "${MACHINE_ID}" > "${ETC_DIR}/machine-id"
 
+# OS Release
+NAME="An Another GNU/Linux Debian"
+VERSION=$(awk '/VERSION=/ {split($0,a,"\""); print a[2]}' ${R}/usr/lib/os-release)
+sed "/^NAME/c\NAME=\"$NAME\"" -i ${R}/usr/lib/os-release
+sed "/^PRETTY/c\PRETTY_NAME=\"$NAME $VERSION\"" -i ${R}/usr/lib/os-release
+sed "/^HOME_URL/c\HOME_URL=\"https://github.com/cyr-ius/rpi123-gen-image/wiki\"" -i ${R}/usr/lib/os-release
+sed "/^SUPPORT_URL/d" -i ${R}/usr/lib/os-release
+sed "/^BUG_REPORT_URL/d" -i ${R}/usr/lib/os-release
+
 # APT Cleanup
 chroot_exec apt-get -y clean
 chroot_exec apt-get -y autoclean
@@ -549,10 +558,15 @@ rm -f "${R}/vmlinuz"
 rm -f "${R}${QEMU_BINARY}"
 
 #Fix preload ARM-MEM
-if [ -f "${R}/usr/lib/libarmmem.a" ] && [ -f "${R}/usr/lib/libarmmem.so" ]; then
-  if [ -e "${ETC_DIR}/ld.so.preload" ]; then sed '/^\/usr\/lib\/libarmmem.so$/d' -i "${ETC_DIR}/ld.so.preload"; fi
-  echo "/usr/lib/libarmmem.so" >> "${ETC_DIR}/ld.so.preload"
+#~ if [ -f "${R}/usr/lib/libarmmem.a" ] && [ -f "${R}/usr/lib/libarmmem.so" ]; then
+  #~ if [ -e "${ETC_DIR}/ld.so.preload" ]; then sed '/^\/usr\/lib\/libarmmem.so$/d' -i "${ETC_DIR}/ld.so.preload"; fi
+  #~ echo "/usr/lib/libarmmem.so" >> "${ETC_DIR}/ld.so.preload"
+#~ fi
+
+if [ -e "${ETC_DIR}/ld.so.preload.disabled" ]; then
+        mv "${ETC_DIR}/ld.so.preload.disabled" "${ETC_DIR}/ld.so.preload"
 fi
+
 
 #Create TAR Filesystem
 if [ "$CREATE_TARBALL" = true ] ; then

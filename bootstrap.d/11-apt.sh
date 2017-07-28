@@ -24,15 +24,23 @@ if [ "$ENABLE_NONFREE" = true ] ; then
   sed -i "s/ contrib/ contrib non-free/" "${ETC_DIR}/apt/sources.list"
 fi
 
-# Add Ipocus depot
-if [ ! -f "${ETC_DIR}/apt/preferences.d/100ipocus-stable" ];  then
-install_readonly files/apt/package.ipocus.net.asc "${ETC_DIR}/apt/"
- chroot_exec <<EOF
-HOME=/root gpg --import /etc/apt/package.ipocus.net.asc /root/.gnupg
-HOME=/root gpg -a --export 300BFF2BE9E1998C /root/.gnupg | apt-key add -
+# Install APT raspberry.org
+install_readonly files/apt/raspi.list "${ETC_DIR}/apt/sources.list.d"
+install_readonly files/apt/raspberrypi.gpg.key "${ETC_DIR}/apt/"
+chroot_exec<<EOF
+apt-key add - < /etc/apt/raspberrypi.gpg.key
 EOF
- install_readonly files/apt/100ipocus-stable "${ETC_DIR}/apt/preferences.d/"
-fi
+
+
+
+# Install APT  ipocus.net
+install_readonly files/apt/100ipocus-stable "${ETC_DIR}/apt/preferences.d/"
+install_readonly files/apt/ipocus.list "${ETC_DIR}/apt/sources.list.d/"
+install_readonly files/apt/ipocus.gpg.key "${ETC_DIR}/apt/"
+chroot_exec<<EOF
+apt-key add - < /etc/apt/ipocus.gpg.key
+EOF
+
 
 # Upgrade package index and update all installed packages and changed dependencies
 chroot_exec apt-get -qq -y update
@@ -49,8 +57,10 @@ chroot_exec apt-get -qq -y -f install
 chroot_exec apt-get -qq -y check
 
 # Install packages from $APT_INCLUDES
+touch ${R}/spindle_install
 install_deb $APT_INCLUDES
+rm -f ${R}/spindle_install
 
 # Upgrade package index and update all installed packages and changed dependencies
-chroot_exec apt-get -qq -y update
-chroot_exec apt-get -qq -y --allow-unauthenticated -u dist-upgrade
+#~ chroot_exec apt-get -qq -y update
+#~ chroot_exec apt-get -qq -y --allow-unauthenticated -u dist-upgrade

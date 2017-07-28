@@ -82,6 +82,11 @@ install_dpkg() {
     cp $* ${R}/tmp
     chroot_exec dpkg --unpack /tmp/$(basename $*)
 }
+search_deb() {
+set +e
+echo $(chroot_exec apt-cache search $*)
+set -e
+}
 install_deb() {
   # Install debian packages
   chroot_exec apt-get -o Dpkg::Options::="--force-confnew" -q -y --allow-unauthenticated --no-install-recommends install $*
@@ -160,12 +165,12 @@ create_fs_tarball() {
 	popd
 }
 build_env() {
-        PATH_XCOMPILE="$(pwd)/$(dirname $BASH_SOURCE)/tools"
-          if [ "$(uname -m)" = "x86_64" ]; then 
-            [ -d "$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin" ] && PATH=$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH
-          else
-            [ -d "$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin" ] && PATH=$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin:$PATH
-          fi
+        #~ PATH_XCOMPILE="$(pwd)/$(dirname $BASH_SOURCE)/tools"
+          #~ if [ "$(uname -m)" = "x86_64" ]; then 
+            #~ [ -d "$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin" ] && PATH=$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH
+          #~ else
+            #~ [ -d "$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin" ] && PATH=$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin:$PATH
+          #~ fi
         case $1 in
           0)
             RPI_MODEL=$1

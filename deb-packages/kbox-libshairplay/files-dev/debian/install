@@ -1,1 +1,4 @@
-usr/local/include /usr/local
+usr/local/include usr
+usr/local/lib/*.so usr/lib/arm-linux-gnueabihf
+usr/local/lib/*.a usr/lib/arm-linux-gnueabihf
+usr/local/lib/*.la usr/lib/arm-linux-gnueabihf

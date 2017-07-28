@@ -1,4 +1,4 @@
-rpi-userland-dev (1.0) stable; urgency=medium
+rpi-userland-dev (1.0) stretch; urgency=medium
 
   * Create userland for Raspberry Pi
 

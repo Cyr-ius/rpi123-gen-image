@@ -1,3 +1,8 @@
 # Configuration template file used by rpi123-gen-image.sh
 RPI_MODEL=0
 APT_INCLUDES_KERNEL="rpi1-firmware"
+DEFLOCAL="fr_FR.UTF-8"
+TIMEZONE="Europe/Paris"
+XKB_MODEL="pc105"
+XKB_LAYOUT="fr"
+XKB_VARIANT="oss"

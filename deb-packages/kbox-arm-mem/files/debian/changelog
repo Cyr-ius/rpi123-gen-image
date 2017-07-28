@@ -1,4 +1,4 @@
-arm-mem (1.0) stable; urgency=medium
+arm-mem (1.0) stretch; urgency=medium
 
   * Create ARM-accelerated versions of selected functions from <string.h> 
 

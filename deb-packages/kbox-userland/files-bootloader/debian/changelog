@@ -1,4 +1,4 @@
-rpi-bootloader (1.0) stable; urgency=medium
+rpi-bootloader (1.0) stretch; urgency=medium
 
   * Create bootloader for Raspberry Pi
 

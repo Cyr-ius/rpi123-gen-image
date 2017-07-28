@@ -1,4 +1,4 @@
-libshairplay0-dev (1.0) stable; urgency=medium
+libshairplay0-dev (1.0) stretch; urgency=medium
 
   * Create libshairplay0 for KBox
 

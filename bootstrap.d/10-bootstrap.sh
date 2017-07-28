@@ -52,7 +52,7 @@ if [  ! -d "${BUILDDIR}/chroot-${RELEASE_ARCH}${RELEASE_VARIANT}" ]; then
 
 else
 
-  # Clean & copye chroot reference
+  # Clean & copy chroot reference
   rm -rf "${R}"
   cp -af "${BUILDDIR}/chroot-${RELEASE_ARCH}${RELEASE_VARIANT}" "${R}"
 fi

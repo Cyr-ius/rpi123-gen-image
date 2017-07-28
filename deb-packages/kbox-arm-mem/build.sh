@@ -8,17 +8,16 @@ VERSION="1.0.5"
 build_env $1
 
 rm -rf arm-mem* *-tmp
+[ "$1" = "3_64" ] && echo "INFO : Package not necessary, bye bye" && exit 0
 
 #  Build package kbox-userland
 cp -r files files-tmp
 pushd src
 make clean
-[ "$1" = "rbp1" ] && CROSS_COMPILE="${CROSS_COMPILE}-" make
-[ "$1" = "rbp2" ]  || [ "$1" = "rbp3" ] && CROSS_COMPILE="${CROSS_COMPILE}-" make
-[ "$1" = "rbp3_64" ] && echo "INFO : Package not necessary, bye bye" && exit 0
+CROSS_COMPILE="${CROSS_COMPILE}-" make
 cp libarmmem.so libarmmem.a ../files-tmp
-#~ make clean
 popd
+
 cd files-tmp
 echo "override_dh_shlibdeps:" >> debian/rules
 fix_version_changelog $VERSION

@@ -1,4 +1,4 @@
-rpi-firmware (1.0) stable; urgency=medium
+rpi-firmware (1.0) stretch; urgency=medium
 
   * Create Metapackage for kernel Raspberry Pi
 

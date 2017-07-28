@@ -1,0 +1,2 @@
+# Configuration template file used by rpi123-gen-image.sh
+RPI_MODEL=2

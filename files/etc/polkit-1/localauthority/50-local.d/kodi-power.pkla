@@ -1,6 +1,0 @@
-[Actions for pi user]
-Identity=unix-user:kodi
-Action=org.freedesktop.login1.*
-ResultActive=yes
-ResultAny=yes
-ResultInactive=yes

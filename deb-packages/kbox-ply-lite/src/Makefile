@@ -3,7 +3,7 @@ CC=$(CROSS_COMPILE)-gcc
 STRIP=$(CROSS_COMPILE)-strip
 DEPENDS=$(shell pwd)/depends
 PC=$(shell pwd)
-LIBPNG=libpng-1.6.30
+LIBPNG=libpng-1.6.32
 ply-image: libpng ply-image.c ply-frame-buffer.c checkmodifier.c Makefile
 	$(CC) ply-image.c ply-frame-buffer.c -lm -L./depends/lib -I./depends/include -lz -lpng16 -O3 -o ply-image
 	$(STRIP) ply-image

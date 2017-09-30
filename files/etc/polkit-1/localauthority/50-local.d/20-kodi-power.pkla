@@ -1,0 +1,20 @@
+[Allow consolekit]
+Identity=unix-group:plugdev
+Action=org.freedesktop.consolekit*
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+ 
+[Allow login1]
+Identity=unix-group:plugdev
+Action=org.freedesktop.login1*
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+ 
+[Allow Upower]
+Identity=unix-group:plugdev
+Action=org.freedesktop.upower*
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes

@@ -51,7 +51,7 @@ CONFIG_TEMPLATE=rpi2stretch ./rpi123-gen-image.sh
 
 ## Supported parameters and settings
 #### APT settings:
-##### `APT_SERVER`="ftp.debian.org"
+##### `APT_SERVER`="http://mirrordirector.raspbian.org/raspbian"
 Set Debian packages server address. Choose a server from the list of Debian worldwide [mirror sites](https://www.debian.org/mirror/list). Using a nearby server will probably speed-up all required downloads within the bootstrapping process.
 
 ##### `APT_PROXY`=""
@@ -66,7 +66,7 @@ A comma separated list of additional packages to be installed during bootstrappi
 ##### `RPI_MODEL`=2
 Specifiy the target Raspberry Pi hardware model. The script at this time supports the Raspberry Pi models `2` and `3`. `BUILD_KERNEL`=true will automatically be set if the Raspberry Pi model `3` is used.
 
-##### `RELEASE`="jessie"
+##### `RELEASE`="stretch"
 Set the desired Debian release name. The script at this time supports the bootstrapping of the Debian releases "jessie" and "stretch". `BUILD_KERNEL`=true will automatically be set if the Debian release `stretch` is used.
 
 ##### `HOSTNAME`="rpi$RPI_MODEL-$RELEASE"
@@ -168,6 +168,9 @@ Allow the installation of non-free Debian packages that do not comply with the D
 ##### `ENABLE_WIRELESS`=false
 Download and install the [closed-source firmware binary blob](https://github.com/RPi-Distro/firmware-nonfree/tree/master/brcm80211/brcm) that is required to run the internal wireless interface of the Raspberry Pi model `3`. This parameter is ignored if the specified `RPI_MODEL` is not `3`.
 
+##### `ENABLE_BLUETOOTH`=false
+Install and enable Pi-bluetooth service
+
 ##### `ENABLE_RSYSLOG`=true
 If set to false, disable and uninstall rsyslog (so logs will be available only
 in journal files)
@@ -190,11 +193,14 @@ Install Xorg open-source X Window System.
 ##### `ENABLE_WM`=""
 Install a user defined window manager for the X Window System. To make sure all X related package dependencies are getting installed `ENABLE_XORG` will automatically get enabled if `ENABLE_WM` is used. The `rpi123-gen-image.sh` script has been tested with the following list of window managers: `blackbox`, `openbox`, `fluxbox`, `jwm`, `dwm`, `xfce4`, `awesome`.
 
-##### `ENABLE_SPLASHSCREEN`=true
-Install and enable plymouth with Kbox Theme.
+##### `ENABLE_SPLASHSCREEN`=false
+Install and enable plymouth with Kodi Theme.
 
-##### `ENABLE_KODI`=true
-Install and enable Kodi at the system startup.
+##### `ENABLE_KODI`=false
+Install Kodi , open source home theater software [more infos](https://kodi.tv/).
+
+##### `ENABLE_KODI_AUTOSTART`=true
+Enable Kodi at the system startup.
 
 ---
 
@@ -448,7 +454,6 @@ To do this, simply run the build script in the directory deb-packages
 | `kbox-splashscreen` | Build the Spalshscreen package |
 | `kbox-libshairplay` | Build the libshairplay0 package for Apple Airport |
 | `kbox-perftune` | Build the Perftune package |
-| `kbox-raspi-config` | Build the raspi-config package |
 
 
 ## External links and references
@@ -460,3 +465,4 @@ To do this, simply run the build script in the directory deb-packages
 * [U-BOOT git repository](http://git.denx.de/?p=u-boot.git;a=summary)
 * [Xorg DDX driver fbturbo](https://github.com/ssvb/xf86-video-fbturbo)
 * [RPi3 Wireless interface firmware](https://github.com/RPi-Distro/firmware-nonfree/tree/master/brcm80211/brcm)
+* [Kodi](https://kodi.tv/)

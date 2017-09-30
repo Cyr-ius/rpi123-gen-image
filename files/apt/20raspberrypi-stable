@@ -1,0 +1,3 @@
+Package: *
+Pin: release o=Raspberry Pi Foundation,a=testing,n=stretch
+Pin-Priority: 600

@@ -1,3 +1,0 @@
-Package: *
-Pin: release o=kodi,a=stretch 
-Pin-Priority: 800

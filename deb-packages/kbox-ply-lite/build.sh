@@ -2,7 +2,7 @@
 pushd $(dirname "$0")
 . ../../functions.sh
 
-VERSION="1.2"
+VERSION="1.3"
 
 [ ! $1 ] && echo "Architecture not found , please add argument (rbp1 | rbp2 | rbp3)" && exit
 build_env $1

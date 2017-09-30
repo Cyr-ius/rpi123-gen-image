@@ -49,7 +49,7 @@ fi
 #~ chmod +x "${ETC_DIR}/rc.firstboot"
 
 # Enable mediacenter.service if Kodi installed
-if [ "$ENABLE_KODI" = true ]; then
+if [ "$ENABLE_KODI" = true ] && [ "$ENABLE_KODI_AUTOSTART" = true ] ; then
 display_message "Please wait, first boot : enable mediacenter..."
 cat files/firstboot/30-enable-mediacenter.sh >> "${ETC_DIR}/rc.firstboot"
 chmod +x "${ETC_DIR}/rc.firstboot"

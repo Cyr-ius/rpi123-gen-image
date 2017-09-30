@@ -118,9 +118,10 @@ NET_NTP_1=${NET_NTP_1:=""}
 NET_NTP_2=${NET_NTP_2:=""}
 
 # APT settings
+ENABLE_RASPBIAN=${ENABLE_RASPBIAN:=true}
 APT_PROXY=${APT_PROXY:=""}
-#~ APT_SERVER=${APT_SERVER:="http://ftp.debian.org/debian"}
-APT_SERVER=${APT_SERVER:="http://mirrordirector.raspbian.org/raspbian"}
+APT_SERVER=${APT_SERVER:="http://ftp.debian.org/debian"}
+[ "$ENABLE_RASPBIAN" = true ] && APT_SERVER="http://mirrordirector.raspbian.org/raspbian"
 
 # Feature settings
 ENABLE_FIRMWARE=${ENABLE_FIRMWARE:=true}
@@ -142,6 +143,7 @@ ENABLE_USER=${ENABLE_USER:=true}
 ENABLE_ROOT=${ENABLE_ROOT:=false}
 ENABLE_SPLASHSCREEN=${ENABLE_SPLASHSCREEN:=false}
 ENABLE_KODI=${ENABLE_KODI:=false}
+ENABLE_KODI_AUTOSTART=${ENABLE_KODI_AUTOSTART:=true}
 
 # SSH settings
 SSH_ENABLE_ROOT=${SSH_ENABLE_ROOT:=false}
@@ -206,7 +208,7 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES} apt-transport-https apt-utils ca-certificates debian-archive-keyring dialog sudo systemd sysvinit-utils fake-hwclock net-tools bash-completion systemd-sysv raspi-copies-and-fills"
+APT_INCLUDES="${APT_INCLUDES} apt-transport-https apt-utils ca-certificates debian-archive-keyring dialog sudo systemd sysvinit-utils fake-hwclock net-tools bash-completion systemd-sysv"
 
 # Packages required for bootstrapping
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc psmisc dbus sudo"
@@ -225,6 +227,7 @@ if [ "$RESET" = true ]; then
   [ -d "linux" ] && rm -rf linux
   [ -d "firmware" ] && rm -rf firmware
   [ -d "tools" ] && rm -rf tools
+  [ -d "deb-packages/packages" ] && rm -rf deb-packages/packages
   [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}  
 fi
 
@@ -349,12 +352,16 @@ fi
 
 # Add Kodi package
 if [ "$ENABLE_KODI" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-pvr-* kodi-visualization-* kodi-audiodecoder-* kodi-audioencoder-* kodi-inputstream-* policykit-1 fbset libsmbclient libcap2-bin connman"
+  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-audioencoder-wav kodi-audioencoder-vorbis kodi-audioencoder-lame kodi-audioencoder-flac kodi-audiodecoder-vgmstream kodi-audiodecoder-timidity kodi-audiodecoder-stsound kodi-audiodecoder-snesapu kodi-audiodecoder-sidplay kodi-audiodecoder-nosefart kodi-audiodecoder-modplug kodi-pvr-wmc kodi-pvr-vuplus kodi-pvr-vdr-vnsi kodi-pvr-vbox kodi-pvr-stalker kodi-pvr-pctv kodi-pvr-njoy kodi-pvr-nextpvr kodi-pvr-mythtv kodi-pvr-mythtv kodi-pvr-iptvsimple kodi-pvr-hts kodi-pvr-hdhomerun kodi-pvr-filmon kodi-pvr-dvbviewer kodi-pvr-dvblink kodi-pvr-demo kodi-pvr-argustv kodi-inputstream-rtmp kodi-inputstream-adaptive kodi-inputstream-rtmp kodi-inputstream-adaptive policykit-1 fbset libsmbclient libcap2-bin connman python-apt python-aptdaemon"
 fi
 
 if [ "$ENABLE_WIRELESS" = true ]; then
   #~ APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb"
   APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb firmware-brcm80211"
+fi
+
+if [ "$ENABLE_RASPBIAN" = true ]; then
+  APT_INCLUDES="${APT_INCLUDES} raspi-copies-and-fills raspi-config"
 fi
 
 # Replace selected packages with smaller clones

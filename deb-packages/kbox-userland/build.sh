@@ -36,10 +36,11 @@ if [ -d "linux" ]; then
    
    # Cross compile kernel and modules
    #~ #make -C "linux" -j${KERNEL_THREADS} ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" ${KERNEL_IMAGE} modules dtbs && echo "Make and package successful" || echo "Kernel make failed"
-   #~ make deb-pkg -C "linux" -j$KERNEL_THREADS ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" ${KERNEL_IMAGE} modules dtbs && echo "Make and package successful" || echo "Warning while make kernel"
-   cd linux
-   make-kpkg -j$KERNEL_THREADS --arch "${KERNEL_ARCH}" --cross-compile "${CROSS_COMPILE}-" --us --uc kernel_image kernel_headers modules_image libc-kheaders
-   cd ..
+   make deb-pkg -C "linux" -j$KERNEL_THREADS ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" ${KERNEL_IMAGE} modules dtbs && echo "Make and package successful" || echo "Warning while make kernel"
+   #~ cd linux
+   #~ make-kpkg -j$KERNEL_THREADS --arch "${KERNEL_ARCH}" --cross-compile "${CROSS_COMPILE}-" --us --uc kernel_image kernel_headers modules_image libc-kheaders
+   #~ cd ..
+   
    # Create metapackage
    release=`cat "linux/include/config/kernel.release"`
    revision=$(cat linux/.version)

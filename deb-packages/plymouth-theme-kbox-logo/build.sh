@@ -9,14 +9,17 @@ VERSION="1.0.6"
 
 rm -rf plymouth-* *-tmp
 
+# Pull source
+URL="https://github.com/cyr-ius/plymouth-theme-kbox-logo"
+pull_source "${URL}" "files-tmp"
+
 #  Build package
-cp -r files files-tmp
-cd files-tmp
+pushd files-tmp
 fix_version $VERSION
 fix_distribution "stretch"
 fix_arch $RELEASE_ARCH
 dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH 
-cd ..
+popd
 
 mkdir -p ../../packages
 mv plymouth-* ../../packages

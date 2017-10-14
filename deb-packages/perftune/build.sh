@@ -9,14 +9,17 @@ VERSION="1.3"
 
 rm -rf perftune* *-tmp
 
+# Pull source
+URL="https://github.com/cyr-ius/perftune"
+pull_source "${URL}" "files-tmp"
+
 #  Build package
-cp -r files files-tmp
-cd files-tmp
+pushd files-tmp
 fix_version $VERSION
 fix_distribution "stretch"
 fix_arch $RELEASE_ARCH
 dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
-cd ..
+popd
 
 mkdir -p ../../packages
 mv perftune*  ../../packages

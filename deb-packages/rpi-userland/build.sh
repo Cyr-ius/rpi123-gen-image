@@ -119,8 +119,8 @@ fix_arch $RELEASE_ARCH
 dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
 
-mkdir -p ../packages
-mv rpi* linux-* ../packages
+mkdir -p ../../packages
+mv rpi* linux-* ../../packages
 
 rm -rf *-tmp
 

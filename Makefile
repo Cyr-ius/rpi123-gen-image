@@ -79,14 +79,14 @@ rbp3x64-kbox:
 rbp0-env:rbp1-env
 rbp0w-env:rbp1-env
 rbp1-env:
-	sudo bash deb-packages/kbox-userland/build.sh 1
+	sudo bash deb-packages/rpi-userland/build.sh 1
 
 rbp2-env:
-	sudo bash deb-packages/kbox-userland/build.sh 2
+	sudo bash deb-packages/rpi-userland/build.sh 2
 
 rbp3-env:rbp2-env
 rbp3x64-env:
-	sudo bash deb-packages/kbox-userland/build.sh 3x64	
+	sudo bash deb-packages/rpi-userland/build.sh 3x64	
 
 rbp0-deb:rbp1-deb
 rbp0w-deb:rbp1-deb
@@ -95,14 +95,14 @@ rbp1-deb:
 	sudo bash deb-packages/perftune/build.sh 1
 	sudo bash deb-packages/libshairplay/build.sh 1
 	sudo bash deb-packages/ply-lite/build.sh 1
-	sudo bash deb-packages/kbox-splashscreen/build.sh 1
+	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 1
 	
 rbp2-deb:
 	sudo bash deb-packages/libcec/build.sh 2
 	sudo bash deb-packages/perftune/build.sh 2
 	sudo bash deb-packages/libshairplay/build.sh 2
 	sudo bash deb-packages/ply-lite/build.sh 2
-	sudo bash deb-packages/kbox-splashscreen/build.sh 2
+	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 2
 	
 rbp3-deb:rbp2-deb
 rbp3x64-deb:
@@ -110,7 +110,7 @@ rbp3x64-deb:
 	sudo bash deb-packages/perftune/build.sh 3x64
 	sudo bash deb-packages/libshairplay/build.sh 3x64
 	sudo bash deb-packages/ply-lite/build.sh 3x64
-	sudo bash deb-packages/kbox-splashscreen/build.sh 3x64
+	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 3x64
 
 clean:
 	sudo rm -rf ./bootstrap.d/flags

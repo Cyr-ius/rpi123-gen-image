@@ -6,7 +6,6 @@ custom.d
 tools
 noobs
 bootstrap.d/flags
-deb-packages/kbox-userland/firmware
-deb-packages/kbox-userland/linux
-deb-packages/packages
+deb-packages/rpi-userland/firmware
+deb-packages/rpi-userland/linux
 packages

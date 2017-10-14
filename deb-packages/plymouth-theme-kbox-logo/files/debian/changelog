@@ -1,0 +1,6 @@
+plymouth-theme-kbox-logo (#VERSION#) #DIST#; urgency=medium
+
+  * Create splashscreen for KBox
+
+ -- Cyr-ius <cyr-ius@ipocus.net>  Sat, 8 Apr 2017 17:20:01 +0000
+

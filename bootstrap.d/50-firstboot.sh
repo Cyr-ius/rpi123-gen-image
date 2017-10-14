@@ -63,7 +63,7 @@ display_message "Please wait, first boot : clean up ..."
 
 # Install default rc.local if it does not exist
 if [ ! -f "${ETC_DIR}/rc.local" ] ; then
-  install_exec files/etc/rc.local "${ETC_DIR}/rc.local"
+  install_exec files/rc/rc.local "${ETC_DIR}/rc.local"
 fi
 
 # Add rc.firstboot script to rc.local

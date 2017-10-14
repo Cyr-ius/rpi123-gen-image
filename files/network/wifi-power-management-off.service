@@ -1,0 +1,11 @@
+[Unit]
+Description=Disable power management for wlan0
+Requires=sys-subsystem-net-devices-wlan0.device
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/iwconfig wlan0 power off
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,0 @@
-ply-image usr/bin
-checkmodifier sbin
-splash_early sbin
-splash.png usr/share/ply-lite
-splash_sad.png usr/share/ply-lite

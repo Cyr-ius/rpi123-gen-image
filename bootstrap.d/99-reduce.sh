@@ -13,10 +13,11 @@ if [ "$ENABLE_REDUCE" = true ] ; then
       install_readonly files/dpkg/01nodoc "${ETC_DIR}/dpkg/dpkg.cfg.d/01nodoc"
     fi
 
-    # Install APT configuration files
-    install_readonly files/apt/02nocache "${ETC_DIR}/apt/apt.conf.d/02nocache"
-    install_readonly files/apt/03compress "${ETC_DIR}/apt/apt.conf.d/03compress"
-    install_readonly files/apt/04norecommends "${ETC_DIR}/apt/apt.conf.d/04norecommends"
+    # Install APT configuration files   
+    install_readonly files/apt/02-nocache "${ETC_DIR}/apt/apt.conf.d"
+    install_readonly files/apt/03-compress "${ETC_DIR}/apt/apt.conf.d"
+    install_readonly files/apt/04-norecommends "${ETC_DIR}/apt/apt.conf.d"
+    install_readonly files/apt/05-nokeepdownload "${ETC_DIR}/apt/apt.conf.d"
 
     # Remove APT cache files
     rm -fr "${R}/var/cache/apt/pkgcache.bin"

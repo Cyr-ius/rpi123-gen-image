@@ -27,16 +27,16 @@ if [ "$BUILD_KERNEL" = true  ] ; then
   else
   {
     # Create temporary directory for boot binaries
-    temp_dir=$(sudo -u nobody mktemp -d)
+    temp_dir=$(as_nobody mktemp -d)
 
     # Install latest boot binaries from raspberry/firmware github
-    sudo -u nobody wget -q -O "${temp_dir}/boot/bootcode.bin" "${FIRMWARE_URL}/bootcode.bin"
-    sudo -u nobody wget -q -O "${temp_dir}/boot/fixup.dat" "${FIRMWARE_URL}/fixup.dat"
-    sudo -u nobody wget -q -O "${temp_dir}/boot/fixup_cd.dat" "${FIRMWARE_URL}/fixup_cd.dat"
-    sudo -u nobody wget -q -O "${temp_dir}/boot/fixup_x.dat" "${FIRMWARE_URL}/fixup_x.dat"
-    sudo -u nobody wget -q -O "${temp_dir}/boot/start.elf" "${FIRMWARE_URL}/start.elf"
-    sudo -u nobody wget -q -O "${temp_dir}/boot/start_cd.elf" "${FIRMWARE_URL}/start_cd.elf"
-    sudo -u nobody wget -q -O "${temp_dir}/boot/start_x.elf" "${FIRMWARE_URL}/start_x.elf"
+    as_nobody wget -q -O "${temp_dir}/boot/bootcode.bin" "${FIRMWARE_URL}/bootcode.bin"
+    as_nobody wget -q -O "${temp_dir}/boot/fixup.dat" "${FIRMWARE_URL}/fixup.dat"
+    as_nobody wget -q -O "${temp_dir}/boot/fixup_cd.dat" "${FIRMWARE_URL}/fixup_cd.dat"
+    as_nobody wget -q -O "${temp_dir}/boot/fixup_x.dat" "${FIRMWARE_URL}/fixup_x.dat"
+    as_nobody wget -q -O "${temp_dir}/boot/start.elf" "${FIRMWARE_URL}/start.elf"
+    as_nobody wget -q -O "${temp_dir}/boot/start_cd.elf" "${FIRMWARE_URL}/start_cd.elf"
+    as_nobody wget -q -O "${temp_dir}/boot/start_x.elf" "${FIRMWARE_URL}/start_x.elf"
 
     # Move downloaded boot binaries
     mv "${temp_dir}/"* "${BOOT_DIR}/"
@@ -179,4 +179,4 @@ if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] && [ -z $APT_INCLUDE
 fi
 
 # Install rules for udev
-install_readonly files/etc/udev/rules.d/* "${ETC_DIR}/udev/rules.d/"
+install_readonly files/udev/* "${ETC_DIR}/udev/rules.d/"

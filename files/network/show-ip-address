@@ -1,0 +1,14 @@
+#!/bin/sh
+if [ "$METHOD" = loopback ]; then
+    exit 0
+fi
+
+# Only run from ifup.
+if [ "$MODE" != start ]; then
+    exit 0
+fi
+
+grep -iq "IP Address" /etc/issue || echo "IP Address : $(ip addr show | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p')" >> /etc/issue
+echo "" >> /etc/issue
+
+#ifconfig | sed -En 's/127.0.0.1//;s/.*inet (addr:)?(([0-9]*\.){3}[0-9]*).*/\2/p'

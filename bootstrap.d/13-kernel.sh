@@ -14,10 +14,10 @@ touch "${BOOT_DIR}/${KERNEL_IMAGE}"
 # Add hooks for kernel install packages
 mkdir -p "${ETC_DIR}/kernel/postinst.d"
 mkdir -p "${ETC_DIR}/kernel/preinst.d"
-install_exec files/etc/kernel/postinst.d/process-vmlinuz "${ETC_DIR}/kernel/postinst.d"
-install_exec files/etc/kernel/postinst.d/update-config "${ETC_DIR}/kernel/postinst.d"
-install_exec files/etc/kernel/preinst.d/preprocess-vmlinuz "${ETC_DIR}/kernel/preinst.d"
-install_readonly files/etc/kernel-img.conf "${ETC_DIR}"
+install_exec files/kernel/postinst.d/process-vmlinuz "${ETC_DIR}/kernel/postinst.d"
+install_exec files/kernel/postinst.d/update-config "${ETC_DIR}/kernel/postinst.d"
+install_exec files/kernel/preinst.d/preprocess-vmlinuz "${ETC_DIR}/kernel/preinst.d"
+install_readonly files/kernel/kernel-img.conf "${ETC_DIR}"
 
 # Install Kernel package if exists
 if [ ! -z "$APT_INCLUDES_KERNEL" ] ; then
@@ -50,20 +50,24 @@ if [ "$BUILD_KERNEL" = true ] ; then
 	}
 	else
 	{
-		    # Create temporary directory for kernel sources
-		    temp_dir=$(sudo -u nobody mktemp -d)
+		# Create temporary directory for kernel sources
+		temp_dir=$(as_nobody mktemp -d)
 
-		    # Fetch current RPi2/3 kernel sources
-		    sudo -u nobody git -C "${temp_dir}" clone --depth=1 "${KERNEL_URL}"
+		# Fetch current RPi2/3 kernel sources
+		if [ -z "${KERNEL_BRANCH}" ] ; then
+		      as_nobody -u nobody git -C "${temp_dir}" clone --depth=1 "${KERNEL_URL}"
+		    else
+		      as_nobody -u nobody git -C "${temp_dir}" clone --depth=1 --branch "${KERNEL_BRANCH}" "${KERNEL_URL}"
+		fi
 
-		    # Copy downloaded kernel sources
-		    mv "${temp_dir}/linux" "${R}/usr/src/"
+		# Copy downloaded kernel sources
+		mv "${temp_dir}/linux" "${R}/usr/src/"
 
-		    # Remove temporary directory for kernel sources
-		    rm -fr "${temp_dir}"
+		# Remove temporary directory for kernel sources
+		rm -fr "${temp_dir}"
 
-		    # Set permissions of the kernel sources
-		    chown -R root:root "${R}/usr/src"
+		# Set permissions of the kernel sources
+		chown -R root:root "${R}/usr/src"
 	} fi
 
 	# Calculate optimal number of kernel building threads
@@ -127,13 +131,13 @@ if [ "$BUILD_KERNEL" = true ] ; then
 		} fi
 
 		# Cross compile kernel and modules
-		make -C "${KERNEL_DIR}" -j${KERNEL_THREADS} ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" zImage modules dtbs
+		make -C "${KERNEL_DIR}" -j${KERNEL_THREADS} ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" "${KERNEL_BIN_IMAGE}" modules dtbs
 	} fi
 
 	# Check if kernel compilation was successful
-	if [ ! -r "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
+	if [ ! -r "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/${KERNEL_BIN_IMAGE}" ] ; then
 	{
-		echo "error: kernel compilation failed! (zImage not found)"
+		echo "error: kernel compilation failed! (${KERNEL_BIN_IMAGE} not found)"
 		cleanup
 		exit 1
 	} fi
@@ -166,19 +170,23 @@ if [ "$BUILD_KERNEL" = true ] ; then
 
 	# Copy dts and dtb device tree sources and binaries
 	mkdir -p "${BOOT_DIR}/overlays"
-	install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/"*.dtb "${BOOT_DIR}/"
+	if [ "$KERNEL_ARCH" = "arm" ] ; then
+		install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/"*.dtb "${BOOT_DIR}/"
+	else
+    		install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/broadcom/"*.dtb "${BOOT_DIR}/"
+	fi
 	install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/overlays/"*.dtb* "${BOOT_DIR}/overlays/"
 	install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/overlays/README" "${BOOT_DIR}/overlays/README"
 
 	if [ "$ENABLE_UBOOT" = false ] ; then
 	{
 		# Convert and copy zImage kernel to the boot directory
-		"${KERNEL_DIR}/scripts/mkknlimg" "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" "${BOOT_DIR}/${KERNEL_IMAGE}"
+		"${KERNEL_DIR}/scripts/mkknlimg" "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/${KERNEL_BIN_IMAGE}" "${BOOT_DIR}/${KERNEL_IMAGE}"
 	}
 	else
 	{
 		# Copy zImage kernel to the boot directory
-		install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" "${BOOT_DIR}/${KERNEL_IMAGE}"
+		install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/${KERNEL_BIN_IMAGE}" "${BOOT_DIR}/${KERNEL_IMAGE}"
 	} fi
 
 	# Remove kernel sources
@@ -191,8 +199,8 @@ if [ "$BUILD_KERNEL" = true ] ; then
 		make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" modules_prepare
 
 		# Create symlinks for kernel modules
-		ln -sf "${KERNEL_DIR}" "${R}/lib/modules/${KERNEL_VERSION}/build"
-		ln -sf "${KERNEL_DIR}" "${R}/lib/modules/${KERNEL_VERSION}/source"
+		chroot_exec ln -sf /usr/src/linux "${R}/lib/modules/${KERNEL_VERSION}/build"
+		chroot_exec ln -sf /usr/src/linux "${R}/lib/modules/${KERNEL_VERSION}/source"
 	} fi
 }
 else

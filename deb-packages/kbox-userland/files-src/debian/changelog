@@ -1,4 +1,4 @@
-rpi-userland-src (1.0) stretch; urgency=medium
+rpi-userland-src (#VERSION#) #DIST#; urgency=medium
 
   * Create userland for Raspberry Pi
 

@@ -5,6 +5,10 @@ After=remote-fs.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/manual-update
+StandardInput=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
 
 [Install]
 WantedBy = multi-user.target

@@ -9,3 +9,4 @@ bootstrap.d/flags
 deb-packages/kbox-userland/firmware
 deb-packages/kbox-userland/linux
 deb-packages/packages
+packages

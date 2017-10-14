@@ -33,7 +33,7 @@ chroot_exec usermod -a -G video $USER_NAME
 chroot_exec usermod -a -G input $USER_NAME
 
 # Add profile
-install_readonly files/etc/profile "${R}/etc/"
+install_readonly files/profile/profile "${R}/etc/"
 
 # Add rights for sudoers
 mkdir -p "${R}/etc/sudoers.d"
@@ -41,3 +41,10 @@ echo "${USER_NAME}     ALL= NOPASSWD: ALL" > "${R}/etc/sudoers.d/no-sudo-passwor
 
 # Nice limits change
 echo "* - nice -1" > "${ETC_DIR}/security/limits.d/no-limit.conf"
+
+#Add rules for polkit-1
+if [ -d "${ETC_DIR}/polkit-1" ]; then
+  install_readonly files/polkit-1/10-allow-update.pkla "${ETC_DIR}/polkit-1/localauthority/50-local.d/"
+  install_readonly files/polkit-1/20-allow-power.pkla "${ETC_DIR}/polkit-1/localauthority/50-local.d/"
+fi
+

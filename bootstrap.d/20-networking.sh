@@ -89,16 +89,19 @@ if [ "NET_NTP_1" != "" ] ; then
 	chroot_exec systemctl enable systemd-timesyncd.service
 fi
 
+#Display Ip address on TTY
+echo "${ETH_IF}0: \4{${ETH_IF}0}" >> "${ETC_DIR}/issue"
+echo "" >> "${ETC_DIR}/issue"
+
 # Download the firmware binary blob required to use the RPi3 wireless interface
 if [ "$ENABLE_WIRELESS" = true ]; then
 	# Disable IPv6
 	if [ "$ENABLE_IPV6" = false ]; then
-		install_readonly files/etc/modprobe.d/ipv6.conf "${ETC_DIR}/modprobe.d/"
+		install_readonly files/modprobe.d/ipv6.conf "${ETC_DIR}/modprobe.d/"
 	fi
-  
-	touch "${ETC_DIR}/wpa_supplicant/wpa_supplicant-wlan0.conf"
-  
+
 	#Enable wpa_supplicant service
+	touch "${ETC_DIR}/wpa_supplicant/wpa_supplicant@wlan0.conf"
 	chroot_exec systemctl enable wpa_supplicant@wlan0.service
   
 	#Fix firmware binary blob
@@ -107,40 +110,13 @@ if [ "$ENABLE_WIRELESS" = true ]; then
 	fi
   
 	#Disable power managment
-	cat <<EOF > "/lib/systemd/system/wifi-power-management-off.service"
-[Unit]
-Description=Disable power management for wlan0
-Requires=sys-subsystem-net-devices-wlan0.device
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/sbin/iwconfig wlan0 power off
-
-[Install]
-WantedBy=multi-user.target
-EOF
+	install_readonly files/network/wifi-power-management-off.service "${R}/lib/systemd/system"
 	chroot_exec systemctl enable wifi-power-management-off.service
-  
-  #~ if [ ! -d ${WLAN_FIRMWARE_DIR} ] ; then
-    #~ mkdir -p ${WLAN_FIRMWARE_DIR}
-  #~ fi
-
-  #~ # Create temporary directory for firmware binary blob
-  #~ temp_dir=$(sudo -u nobody mktemp -d)
-
-  #~ # Fetch firmware binary blob
-  #~ sudo -u nobody wget -q -O "${temp_dir}/brcmfmac43430-sdio.bin" "${WLAN_FIRMWARE_URL}/brcmfmac43430-sdio.bin"
-  #~ sudo -u nobody wget -q -O "${temp_dir}/brcmfmac43430-sdio.txt" "${WLAN_FIRMWARE_URL}/brcmfmac43430-sdio.txt"
-
-  #~ # Move downloaded firmware binary blob
-  #~ mv "${temp_dir}/brcmfmac43430-sdio."* "${WLAN_FIRMWARE_DIR}/"
-
-  #~ # Remove temporary directory for firmware binary blob
-  #~ rm -fr "${temp_dir}"
-
-  #~ # Set permissions of the firmware binary blob
-  #~ chown root:root "${WLAN_FIRMWARE_DIR}/brcmfmac43430-sdio."*
-  #~ chmod 600 "${WLAN_FIRMWARE_DIR}/brcmfmac43430-sdio."*
+	
+	#Copy user wpa_supplicant.conf
+	install_readonly files/network/wireless-setting.service "${R}/lib/systemd/system"
+	chroot_exec systemctl enable wireless-setting.service	
+	
+	
 fi
   

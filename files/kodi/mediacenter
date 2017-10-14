@@ -1,4 +1,4 @@
-#!/bin/bash
+	#!/bin/bash
 # Modified by C.Levasseur
 #
 # Original Author : Sam Nazarko  email@samnazarko.co.uk
@@ -22,8 +22,8 @@ trap 'wait; exit 0' SIGTERM
 chmod a+rw /dev/tty1
 /usr/bin/setterm --blank 0 </dev/tty1 >/dev/tty1
 
-/sbin/checkmodifier
-case $? in
+/sbin/checkmodifier; CODE=$?
+case $CODE in
 4)
 	/usr/bin/setterm --cursor on >/dev/tty1
 	systemctl start getty@tty1
@@ -64,7 +64,7 @@ if [ ! -e /var/run/fb_resolution ]; then
 fi
 
 while true; do
-
+	if [ -f /home/kodi/.factoryreset ]; then rm -rf /home/kodi/.kodi && rm /home/kodi/.factoryreset; fi
 	if [ -f /tmp/guisettings.restore ]; then mv /tmp/guisettings.restore /home/kodi/.kodi/userdata/guisettings.xml; fi
 	KODI=/usr/lib/kodi/kodi.bin
 	setcap 'cap_net_bind_service=+ep' $KODI

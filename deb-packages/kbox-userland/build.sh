@@ -1,8 +1,8 @@
 #!/bin/bash
+[ ! $1 ] && echo "Architecture not found, please add raspberrypi model ( 0 | 1 | 2 | 3 | 3x64 )" && exit
 pushd $(dirname "$0")
 . ../../functions.sh
 
-[ ! $1 ] && echo "Architecture not found, please add raspberrypi model ( 0 | 1 | 2 | 3 | 3x64 )" && exit
 build_env $1
 
 rm -rf rpi* *-tmp
@@ -31,12 +31,10 @@ if [ -d "linux" ]; then
 
    # Load default raspberry kernel configuration
    make -C "linux" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" "${KERNEL_DEFCONFIG}"
-
-   [ "$RPI_MODEL" = "3x64" ] && KERNEL_IMAGE=Image.gz || KERNEL_IMAGE=zImage
-   
+  
    # Cross compile kernel and modules
-   #~ #make -C "linux" -j${KERNEL_THREADS} ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" ${KERNEL_IMAGE} modules dtbs && echo "Make and package successful" || echo "Kernel make failed"
-   make deb-pkg -C "linux" -j$KERNEL_THREADS ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" ${KERNEL_IMAGE} modules dtbs && echo "Make and package successful" || echo "Warning while make kernel"
+   #~ #make -C "linux" -j${KERNEL_THREADS} ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" ${KERNEL_BIN_IMAGE} modules dtbs && echo "Make and package successful" || echo "Kernel make failed"
+   make deb-pkg -C "linux" -j$KERNEL_THREADS ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" "${KERNEL_BIN_IMAGE}" modules dtbs && echo "Make and package successful" || echo "Warning while make kernel"
    #~ cd linux
    #~ make-kpkg -j$KERNEL_THREADS --arch "${KERNEL_ARCH}" --cross-compile "${CROSS_COMPILE}-" --us --uc kernel_image kernel_headers modules_image libc-kheaders
    #~ cd ..
@@ -52,7 +50,8 @@ if [ -d "linux" ]; then
    sed "s/rpi-firmware/rpi$RPI_TYPE-firmware/g" -i debian/control
    sed '/Depends/d' -i debian/control
    echo "Depends: \${misc:Depends}, rpi$RPI_TYPE-bootloader (=${version}), rpi$RPI_TYPE-userland (=${version}), linux-firmware-image-${release} (=${version}), linux-image-${release} (=${version}), linux-libc-dev (>=${version})" >> debian/control
-   fix_version_changelog $version
+   fix_version $version
+   fix_distribution "stretch"
    fix_arch $RELEASE_ARCH
    dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
    cd ..
@@ -71,7 +70,8 @@ sed "s/rpi-userland/rpi$RPI_TYPE-userland/g" -i debian/changelog
 sed "s/rpi-userland/rpi$RPI_TYPE-userland/g" -i debian/control
 echo "override_dh_strip:" >> debian/rules
 echo "override_dh_shlibdeps:" >> debian/rules
-fix_version_changelog $version
+fix_version $version
+fix_distribution "stretch"
 fix_arch $RELEASE_ARCH
 dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
@@ -85,7 +85,8 @@ sed '/Depends/d' -i debian/control
 echo "Depends: \${misc:Depends}, rpi$RPI_TYPE-userland (=${version})" >> debian/control
 echo "override_dh_strip:" >> debian/rules
 echo "override_dh_shlibdeps:" >> debian/rules
-fix_version_changelog $version
+fix_version $version
+fix_distribution "stretch"
 fix_arch $RELEASE_ARCH
 dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
@@ -99,7 +100,8 @@ sed '/Depends/d' -i debian/control
 echo "Depends: \${misc:Depends}, rpi$RPI_TYPE-userland (=${version})" >> debian/control
 echo "override_dh_strip:" >> debian/rules
 echo "override_dh_shlibdeps:" >> debian/rules
-fix_version_changelog $version
+fix_version $version
+fix_distribution "stretch"
 fix_arch $RELEASE_ARCH
 dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..
@@ -111,7 +113,8 @@ sed "s/rpi-bootloader/rpi$RPI_TYPE-bootloader/g" -i debian/changelog
 sed "s/rpi-bootloader/rpi$RPI_TYPE-bootloader/g" -i debian/control
 echo "override_dh_strip:" >> debian/rules
 echo "override_dh_shlibdeps:" >> debian/rules
-fix_version_changelog $version
+fix_version $version
+fix_distribution "stretch"
 fix_arch $RELEASE_ARCH
 dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 cd ..

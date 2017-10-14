@@ -39,7 +39,4 @@ EOF
 
 	#Create samba cache
 	mkdir -p "${R}/var/cache/samba"
-
-	#Add polkit and rule
-	install_readonly files/etc/polkit-1/localauthority/50-local.d/20-kodi-power.pkla "${ETC_DIR}/polkit-1/localauthority/50-local.d/"
 fi

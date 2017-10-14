@@ -7,9 +7,10 @@
 
 # Install and setup APT proxy configuration
 if [ -z "$APT_PROXY" ] ; then
-  install_readonly files/apt/10proxy "${ETC_DIR}/apt/apt.conf.d/10proxy"
-  sed -i "s/\"\"/\"${APT_PROXY}\"/" "${ETC_DIR}/apt/apt.conf.d/10proxy"
+  install_readonly files/apt/10-proxy "${ETC_DIR}/apt/apt.conf.d"
+  sed -i "s/\"\"/\"${APT_PROXY}\"/" "${ETC_DIR}/apt/apt.conf.d/10-proxy"
 fi
+
 
 # Install APT sources.list
 install_readonly files/apt/debian-sources.list "${ETC_DIR}/apt/sources.list"
@@ -33,18 +34,18 @@ if [ -n "$(search_deb gnupg2)" ];then install_deb gnupg2; fi
 
 # Install APT raspberry.org
 if [ "$ENABLE_RASPBIAN" = true ] ; then  
-  install_readonly files/apt/20raspberrypi-stable "${ETC_DIR}/apt/preferences.d/"
+  install_readonly files/apt/20-raspberrypi-stable "${ETC_DIR}/apt/preferences.d"
   install_readonly files/apt/raspberrypi.list "${ETC_DIR}/apt/sources.list.d"
-  install_readonly files/apt/raspberrypi.gpg.key "${ETC_DIR}/apt/"
+  install_readonly files/apt/raspberrypi.gpg.key "${ETC_DIR}/apt"
   chroot_exec<<EOF
 apt-key add - < /etc/apt/raspberrypi.gpg.key
 EOF
 fi
 
 # Install APT  ipocus.net
-install_readonly files/apt/10ipocus-stable "${ETC_DIR}/apt/preferences.d/"
-install_readonly files/apt/ipocus.list "${ETC_DIR}/apt/sources.list.d/"
-install_readonly files/apt/ipocus.gpg.key "${ETC_DIR}/apt/"
+install_readonly files/apt/10-ipocus-stable "${ETC_DIR}/apt/preferences.d"
+install_readonly files/apt/ipocus.list "${ETC_DIR}/apt/sources.list.d"
+install_readonly files/apt/ipocus.gpg.key "${ETC_DIR}/apt"
 chroot_exec<<EOF
 apt-key add - < /etc/apt/ipocus.gpg.key
 EOF

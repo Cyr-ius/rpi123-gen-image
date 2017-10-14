@@ -35,12 +35,12 @@ if [  ! -d "${BUILDDIR}/chroot-${RELEASE_ARCH}${RELEASE_VARIANT}" ]; then
   fi
 
   # Copy qemu emulator binary to chroot
-  install_exec "${QEMU_BINARY}" "${R}${QEMU_BINARY}"
+  install -m 755 -o root -g root "${QEMU_BINARY}" "${R}${QEMU_BINARY}"
 
   # Copy debian-archive-keyring.pgp
   mkdir -p "${R}/usr/share/keyrings"
   install_readonly /usr/share/keyrings/debian-archive-keyring.gpg "${R}/usr/share/keyrings/debian-archive-keyring.gpg"
-  install_readonly files/apt/raspberrypi.gpg "${R}/usr/share/keyrings/raspberrypi.gpg"
+  #~ install_readonly files/apt/raspberrypi.gpg "${R}/usr/share/keyrings/raspberrypi.gpg"
 
   # Complete the bootstrapping process
   if [ "$(ls -A ${R}/debootstrap)" ] ; then

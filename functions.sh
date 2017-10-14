@@ -57,6 +57,11 @@ chroot_exec() {
   LANG=C LC_ALL=C DEBIAN_FRONTEND=noninteractive chroot ${R} $*
 }
 
+as_nobody() {
+  # Exec command as user nobody
+  sudo -E -u nobody LANG=C LC_ALL=C $*
+}
+
 chroot_install_cc() {
   # Install c/c++ build environment inside the chroot
   if [ -z "${COMPILER_PACKAGES}" ] ; then
@@ -91,14 +96,18 @@ install_deb() {
   # Install debian packages
   chroot_exec apt-get -o Dpkg::Options::="--force-confnew" -q -y --allow-unauthenticated --no-install-recommends install $*
 }
+#~ fix_version() {
+	#~ [ -n $2 ] && CONTROL=$2 || CONTROL="debian/control"
+	#~ sed '/Version/d' -i $CONTROL
+	#~ echo "Version: $1" >> $CONTROL
+#~ }
 fix_version() {
-	[ -n $2 ] && CONTROL=$2 || CONTROL="debian/control"
-	sed '/Version/d' -i $CONTROL
-	echo "Version: $1" >> $CONTROL
-}
-fix_version_changelog() {
 	[ $2 ] && CONTROL=$2 || CONTROL="debian/changelog"
-        sed "s/(1.0)/($1)/g" -i $CONTROL
+        sed "s/#VERSION#/$1/g" -i $CONTROL
+}
+fix_distribution() {
+	[ $2 ] && CONTROL=$2 || CONTROL="debian/changelog"
+        sed "s/#DIST#/$1/g" -i $CONTROL
 }
 fix_arch() {
 	[ $2 ] && CONTROL=$2 || CONTROL="debian/control"
@@ -182,6 +191,7 @@ build_env() {
             [ "$ENABLE_WIRELESS" = true ] && DTB_FILE=${DTB_FILE:=bcm2708-rpi-0-w.dtb}
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel.img}
+            KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="zImage"}
             ;;
           1)
             RPI_MODEL=$1
@@ -192,6 +202,7 @@ build_env() {
             DTB_FILE=${DTB_FILE:=bcm2708-rpi-b-plus.dtb}
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel.img}
+            KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="zImage"}
             ;;            
           2)
             RPI_MODEL=$1
@@ -202,6 +213,7 @@ build_env() {
             DTB_FILE=${DTB_FILE:=bcm2709-rpi-2-b.dtb}
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_2_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
+            KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="zImage"}
             ;;
           3)
             RPI_MODEL=$1
@@ -212,6 +224,7 @@ build_env() {
             DTB_FILE=${DTB_FILE:=bcm2710-rpi-3-b.dtb}
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_3_32b_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
+            KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="zImage"}
             ;;               
           3x64)
             RPI_MODEL=$1
@@ -222,6 +235,7 @@ build_env() {
             DTB_FILE=${DTB_FILE:=bcm2710-rpi-3-b.dtb}
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_3_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel8.img}
+            KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="Image"}
             ;;          
         esac
 }

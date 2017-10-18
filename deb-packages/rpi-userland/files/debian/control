@@ -9,3 +9,18 @@ Package: rpi-userland
 Architecture: all
 Depends: ${misc:Depends}
 Description: Raspberry Pi userland package
+
+Package: rpi-userland-dev
+Architecture: all
+Description: Raspberry Pi userland package with headers
+Depends: ${misc:Depends}, rpi-userland (=0)
+
+Package: rpi-userland-src
+Architecture: all
+Description: Raspberry Pi userland package with headers
+Depends: ${misc:Depends}, rpi-userland (=0)
+
+Package: rpi-bootloader
+Architecture: all
+Depends: ${misc:Depends}
+Description: Raspberry Pi Bootloader components

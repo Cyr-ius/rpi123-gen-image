@@ -1,6 +1,0 @@
-rpi-bootloader (#VERSION#) #DIST#; urgency=medium
-
-  * Create bootloader for Raspberry Pi
-
- -- Cyr-ius <cyr-ius@ipocus.net>  Sat, 8 Apr 2017 17:20:01 +0000
-

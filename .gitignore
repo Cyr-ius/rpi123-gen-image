@@ -7,5 +7,7 @@ tools
 noobs
 bootstrap.d/flags
 deb-packages/rpi-userland/firmware
+deb-packages/rpi-userland/files-firmware-tmp
+deb-packages/*/files-tmp
 deb-packages/rpi-userland/linux
 packages

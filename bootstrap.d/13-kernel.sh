@@ -22,6 +22,7 @@ install_readonly files/kernel/kernel-img.conf "${ETC_DIR}"
 # Install Kernel package if exists
 if [ ! -z "$APT_INCLUDES_KERNEL" ] ; then
 {
+  chroot_exec "apt --fix-broken install"
   install_deb $APT_INCLUDES_KERNEL
   if [ ! $? ]; then
 	echo "error: kernel not found"

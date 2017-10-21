@@ -1,4 +1,4 @@
-	#!/bin/bash
+#!/bin/bash
 # Modified by C.Levasseur
 #
 # Original Author : Sam Nazarko  email@samnazarko.co.uk
@@ -17,7 +17,7 @@ if [ "$1" = "stop" ]; then
 	exit
 fi
 
-trap 'wait; exit 0' SIGTERM
+trap 'wait; exit 0' TERM
 
 chmod a+rw /dev/tty1
 /usr/bin/setterm --blank 0 </dev/tty1 >/dev/tty1

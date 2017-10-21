@@ -55,7 +55,7 @@ chroot_exec apt-get -qq -y update
 chroot_exec apt-get -qq -y --allow-unauthenticated -u dist-upgrade
 
 # Install specifics packages
-if [ -d packages ] ; then
+if [ -d packages && $(ls -A packages) ] ; then
   for package in packages/*.deb ; do
     cp $package ${R}/tmp
     chroot_exec dpkg --unpack /tmp/$(basename $package)

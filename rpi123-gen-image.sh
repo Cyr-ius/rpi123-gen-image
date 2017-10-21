@@ -132,6 +132,7 @@ ENABLE_IPV6=${ENABLE_IPV6:=true}
 ENABLE_SSHD=${ENABLE_SSHD:=true}
 ENABLE_NONFREE=${ENABLE_NONFREE:=false}
 ENABLE_WIRELESS=${ENABLE_WIRELESS:=false}
+ENABLE_BLUETOOTH=${ENABLE_BLUETOOTH:=false}
 ENABLE_SOUND=${ENABLE_SOUND:=true}
 ENABLE_DBUS=${ENABLE_DBUS:=true}
 ENABLE_HWRANDOM=${ENABLE_HWRANDOM:=true}
@@ -141,6 +142,8 @@ ENABLE_WM=${ENABLE_WM:=""}
 ENABLE_RSYSLOG=${ENABLE_RSYSLOG:=true}
 ENABLE_USER=${ENABLE_USER:=true}
 ENABLE_ROOT=${ENABLE_ROOT:=false}
+
+#Kodi Mediacenter
 ENABLE_SPLASHSCREEN=${ENABLE_SPLASHSCREEN:=false}
 ENABLE_KODI=${ENABLE_KODI:=false}
 ENABLE_KODI_AUTOSTART=${ENABLE_KODI_AUTOSTART:=true}
@@ -352,14 +355,25 @@ fi
 
 # Add Kodi package
 if [ "$ENABLE_KODI" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-audioencoder-wav kodi-audioencoder-vorbis kodi-audioencoder-lame kodi-audioencoder-flac kodi-audiodecoder-vgmstream kodi-audiodecoder-timidity kodi-audiodecoder-stsound kodi-audiodecoder-snesapu kodi-audiodecoder-sidplay kodi-audiodecoder-nosefart kodi-audiodecoder-modplug kodi-pvr-wmc kodi-pvr-vuplus kodi-pvr-vdr-vnsi kodi-pvr-vbox kodi-pvr-stalker kodi-pvr-pctv kodi-pvr-njoy kodi-pvr-nextpvr kodi-pvr-mythtv kodi-pvr-mythtv kodi-pvr-iptvsimple kodi-pvr-hts kodi-pvr-hdhomerun kodi-pvr-filmon kodi-pvr-dvbviewer kodi-pvr-dvblink kodi-pvr-demo kodi-pvr-argustv kodi-inputstream-rtmp kodi-inputstream-adaptive kodi-inputstream-rtmp kodi-inputstream-adaptive policykit-1 fbset libsmbclient libcap2-bin connman python-apt python-aptdaemon"
+  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-audioencoder-wav kodi-audioencoder-vorbis kodi-audioencoder-lame kodi-audioencoder-flac kodi-audiodecoder-vgmstream kodi-audiodecoder-timidity kodi-audiodecoder-stsound kodi-audiodecoder-snesapu kodi-audiodecoder-sidplay kodi-audiodecoder-nosefart kodi-audiodecoder-modplug kodi-pvr-wmc kodi-pvr-vuplus kodi-pvr-vdr-vnsi kodi-pvr-vbox kodi-pvr-stalker kodi-pvr-pctv kodi-pvr-njoy kodi-pvr-nextpvr kodi-pvr-mythtv kodi-pvr-mythtv kodi-pvr-iptvsimple kodi-pvr-hts kodi-pvr-hdhomerun kodi-pvr-filmon kodi-pvr-dvbviewer kodi-pvr-dvblink kodi-pvr-demo kodi-pvr-argustv kodi-inputstream-rtmp kodi-inputstream-adaptive kodi-inputstream-rtmp kodi-inputstream-adaptive libsmbclient python-apt python-aptdaemon libcec"
 fi
 
+# Add service and watchdog for kodi at startup
+if [ "$ENABLE_KODI_AUTOSTART" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} policykit-1 libcap2-bin fbset connman"
+fi
+
+# Add wireless packages
 if [ "$ENABLE_WIRELESS" = true ]; then
-  #~ APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb"
   APT_INCLUDES="${APT_INCLUDES} wpasupplicant wireless-tools wireless-regdb firmware-brcm80211"
 fi
 
+# Add bluetooth packages
+if [ "$ENABLE_BLUETOOTH" = true ]; then
+  APT_INCLUDES="${APT_INCLUDES} bluez, bluez-firmware"
+fi
+
+# Add optimization pack for Raspbian
 if [ "$ENABLE_RASPBIAN" = true ]; then
   APT_INCLUDES="${APT_INCLUDES} raspi-copies-and-fills raspi-config"
 fi

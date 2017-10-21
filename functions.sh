@@ -35,7 +35,7 @@ install_readonly() {
 
 install_exec() {
   # Install file with root exec permissions
-  install -o root -g root -m 744 $*
+  install -o root -g root -m 755 $*
 }
 
 use_template () {
@@ -174,12 +174,6 @@ create_fs_tarball() {
 	popd
 }
 build_env() {
-        #~ PATH_XCOMPILE="$(pwd)/$(dirname $BASH_SOURCE)/tools"
-          #~ if [ "$(uname -m)" = "x86_64" ]; then 
-            #~ [ -d "$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin" ] && PATH=$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin:$PATH
-          #~ else
-            #~ [ -d "$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin" ] && PATH=$PATH_XCOMPILE/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin:$PATH
-          #~ fi
         case $1 in
           0)
             RPI_MODEL=$1
@@ -192,6 +186,7 @@ build_env() {
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel.img}
             KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="zImage"}
+            QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
             ;;
           1)
             RPI_MODEL=$1
@@ -203,6 +198,7 @@ build_env() {
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel.img}
             KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="zImage"}
+            QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
             ;;            
           2)
             RPI_MODEL=$1
@@ -214,6 +210,7 @@ build_env() {
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_2_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
             KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="zImage"}
+            QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
             ;;
           3)
             RPI_MODEL=$1
@@ -225,6 +222,7 @@ build_env() {
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_3_32b_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
             KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="zImage"}
+            QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
             ;;               
           3x64)
             RPI_MODEL=$1
@@ -236,6 +234,7 @@ build_env() {
             UBOOT_CONFIG=${UBOOT_CONFIG:=rpi_3_defconfig}
             KERNEL_IMAGE=${KERNEL_IMAGE:=kernel8.img}
             KERNEL_BIN_IMAGE=${KERNEL_BIN_IMAGE:="Image"}
+            QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-aarch64-static}
             ;;          
         esac
 }

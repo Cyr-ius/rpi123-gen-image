@@ -13,6 +13,6 @@ chroot_exec << EOT
 ln -s /usr/lib/python2.7/plat-*/_sysconfigdata_nd.py /usr/lib/python2.7/
 EOT
 
-if [ -n "$(search_deb kbox-perftune)" ]; then
-	install_deb kbox-perftune
+if [ -n "$(search_deb perftune)" ]; then
+	install_deb perftune
 fi

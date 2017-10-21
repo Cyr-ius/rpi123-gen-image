@@ -14,19 +14,13 @@ if [ "$ENABLE_KODI" = true ] ; then
 			install_deb ply-lite
 		else
 			[ ! -d "${R}/usr/share/ply-lite" ] && mkdir  -p "${R}/usr/share/ply-lite"
-			install_readonly files/kodi/splash_sad.png "${R}/usr/share/ply-lite/"
+			install_readonly files/kodi/splash_crash.png "${R}/usr/share/ply-lite/"
+			install_readonly files/kodi/splash.png "${R}/usr/share/ply-lite/"
 			install_exec files/kodi/ply-image "${R}/bin/ply-image"
-		chroot_exec << EOF
-ln -s /usr/share/kodi/media/Splash.png /usr/share/ply-lite/splash.png
-ln -s /usr/share/kodi/media/Splash.png /usr/share/ply-lite/halt.png
-ln -s /usr/share/kodi/media/Splash.png /usr/share/ply-lite/reboot.png
-ln -s /usr/share/kodi/media/Splash.png /usr/share/ply-lite/poweroff.png 
-EOF
+			install_exec files/kodi/checkmodifier "${R}/sbin/"  
 		fi
-
 		install_exec files/kodi/manual-update "${R}/usr/bin/"
 		install_readonly files/kodi/manual-update.service "${R}/lib/systemd/system/"
-		install_exec files/kodi/checkmodifier "${R}/sbin/"  
 		install_exec files/kodi/mediacenter "${R}/usr/bin/"
 		install_readonly files/kodi/mediacenter.service "${R}/lib/systemd/system/"
 	fi

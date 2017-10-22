@@ -5,10 +5,10 @@ pushd $(dirname "$0")
 
 build_env $1
 
-rm -rf perftune* *-tmp
+rm -rf kodi-autostart* *-tmp
 
 # Pull source
-URL="https://github.com/cyr-ius/perftune"
+URL="https://github.com/cyr-ius/kodi-autostart"
 pull_source "${URL}" "files-tmp"
 
 #  Build package
@@ -18,7 +18,7 @@ dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
 popd
 
 mkdir -p ../../packages
-mv perftune*  ../../packages
+mv kodi-autostart*  ../../packages
 
 rm -rf *-tmp
 popd

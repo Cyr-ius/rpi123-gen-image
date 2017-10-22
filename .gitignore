@@ -11,3 +11,4 @@ deb-packages/rpi-userland/files-firmware-tmp
 deb-packages/*/files-tmp
 deb-packages/rpi-userland/linux
 packages
+Helpme

@@ -1,5 +1,5 @@
 # Configuration template file used by rpi23-gen-image.sh
-RPI_MODEL=1
+RPI_MODEL=0
 APT_INCLUDES_KERNEL="rpi1-firmware"
 DEFLOCAL="fr_FR.UTF-8"
 TIMEZONE="Europe/Paris"

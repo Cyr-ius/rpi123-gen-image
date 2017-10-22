@@ -38,7 +38,7 @@ case $CODE in
 		if grep -q nfsroot /proc/cmdline; then
 			ping -c 1 -W 2 packages.ipocus.net >/dev/null 2>&1 && break
 		else
-			if connmanctl state | grep -iq 'online'; then break; fi
+			if [ $(grep "" /sys/class/net/*/operstate | grep -v "lo/operstate" | awk '{split($0,a,":"); print a[2]}') == "up" ]; then break; fi
 		fi
 		sleep 5; let count-=5
 	done
@@ -68,6 +68,7 @@ while true; do
 	if [ -f /tmp/guisettings.restore ]; then mv /tmp/guisettings.restore /home/kodi/.kodi/userdata/guisettings.xml; fi
 	KODI=/usr/lib/kodi/kodi.bin
 	setcap 'cap_net_bind_service=+ep' $KODI
+	setcap 'cap_sys_reboot=+ep' $KODI
 	starttime=$(date +%s)
 	echo "Starting Kodi..."
 	sudo -u kodi $KODI --standalone -fs --lircdev /var/run/lirc/lircd; CODE="$?"

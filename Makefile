@@ -34,6 +34,7 @@ rbp0w-min:
 rbp0w-kbox:
 	sudo CLEAN=${CLEAN} \
 		ENABLE_WIRELESS=true ENABLE_BLUETOOTH=true ENABLE_NONFREE=true \
+		HOST_NAME=rbp0w-kbox \
 		CONFIG_TEMPLATE=rpi0kbox ./rpi123-gen-image.sh
 
 rbp1:
@@ -96,6 +97,7 @@ rbp1-deb:
 	sudo bash deb-packages/shairplay/build.sh 1
 	sudo bash deb-packages/ply-lite/build.sh 1
 	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 1
+	sudo bash deb-packages/pi-bluetooth/build.sh 1
 	
 rbp2-deb:
 	sudo bash deb-packages/libcec/build.sh 2
@@ -103,6 +105,7 @@ rbp2-deb:
 	sudo bash deb-packages/shairplay/build.sh 2
 	sudo bash deb-packages/ply-lite/build.sh 2
 	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 2
+	sudo bash deb-packages/pi-bluetooth/build.sh 2
 	
 rbp3-deb:rbp2-deb
 rbp3x64-deb:
@@ -111,6 +114,7 @@ rbp3x64-deb:
 	sudo bash deb-packages/shairplay/build.sh 3x64
 	sudo bash deb-packages/ply-lite/build.sh 3x64
 	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 3x64
+	sudo bash deb-packages/pi-bluetooth/build.sh 3x64
 
 clean:
 	sudo rm -rf ./bootstrap.d/flags

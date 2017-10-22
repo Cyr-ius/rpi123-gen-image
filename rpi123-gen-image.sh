@@ -262,6 +262,11 @@ if [ "$ENABLE_FBTURBO" = true ] ; then
   ENABLE_XORG=true
 fi
 
+#Disable buildkernel if  APT_INCLUDES_KERNEL is not empty
+if [ ! -z "$APT_INCLUDES_KERNEL" ] ; then
+  BUILD_KERNEL=false 
+fi
+
 # Configure kernel sources if no KERNELSRC_DIR
 if [ "$BUILD_KERNEL" = true ] && [ -z "$KERNELSRC_DIR" ] ; then
   KERNELSRC_CONFIG=true
@@ -349,7 +354,7 @@ if [ "$ENABLE_XORG" = true ] ; then
 fi
 
 # Add plymouth & plymouth's theme package
-if [ "$ENABLE_SPLASHSCREEN" = true ] ; then
+if [ "$ENABLE_SPLASHSCREEN" = true ] && [ "$ENABLE_INITRAMFS" = true ]; then
   APT_INCLUDES="${APT_INCLUDES} plymouth plymouth-themes"
 fi
 
@@ -359,8 +364,8 @@ if [ "$ENABLE_KODI" = true ] ; then
 fi
 
 # Add service and watchdog for kodi at startup
-if [ "$ENABLE_KODI_AUTOSTART" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} policykit-1 libcap2-bin fbset connman"
+if [ "$ENABLE_KODI_AUTOSTART" = true ]  && [ "$ENABLE_KODI" = true ]; then
+  APT_INCLUDES="${APT_INCLUDES} policykit-1 libcap2-bin fbset"
 fi
 
 # Add wireless packages
@@ -370,7 +375,7 @@ fi
 
 # Add bluetooth packages
 if [ "$ENABLE_BLUETOOTH" = true ]; then
-  APT_INCLUDES="${APT_INCLUDES} bluez, bluez-firmware"
+  APT_INCLUDES="${APT_INCLUDES} bluez bluez-firmware"
 fi
 
 # Add optimization pack for Raspbian
@@ -468,6 +473,14 @@ if [ -r "/dev/mapping/${CRYPTFS_MAPPING}" ] ; then
   echo "error: mapping /dev/mapping/${CRYPTFS_MAPPING} already exists, not proceeding"
   exit 1
 fi
+
+#Check if initramfs is enable with splashscreen
+if [ "$ENABLE_SPLASHSCREEN" = true ] && [ "$ENABLE_INITRAMFS" = false ]; then
+  echo "error: for enable spalshscreen, please enable initramfs"
+  exit 1
+fi
+
+
 
 # Pull Tools source if url is not empty
 if [ -n "$TOOLS_URL" ]; then

@@ -230,7 +230,7 @@ if [ "$RESET" = true ]; then
   [ -d "linux" ] && rm -rf linux
   [ -d "firmware" ] && rm -rf firmware
   [ -d "tools" ] && rm -rf tools
-  [ -d "deb-packages/packages" ] && rm -rf deb-packages/packages
+  [ -d "packages" ] && rm -rf packages
   [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}  
 fi
 
@@ -480,8 +480,6 @@ if [ "$ENABLE_SPLASHSCREEN" = true ] && [ "$ENABLE_INITRAMFS" = false ]; then
   exit 1
 fi
 
-
-
 # Pull Tools source if url is not empty
 if [ -n "$TOOLS_URL" ]; then
   echo "Pull tools source"
@@ -592,15 +590,9 @@ rm -f "${R}/vmlinuz"
 rm -f "${R}${QEMU_BINARY}"
 
 #Fix preload ARM-MEM
-#~ if [ -f "${R}/usr/lib/libarmmem.a" ] && [ -f "${R}/usr/lib/libarmmem.so" ]; then
-  #~ if [ -e "${ETC_DIR}/ld.so.preload" ]; then sed '/^\/usr\/lib\/libarmmem.so$/d' -i "${ETC_DIR}/ld.so.preload"; fi
-  #~ echo "/usr/lib/libarmmem.so" >> "${ETC_DIR}/ld.so.preload"
-#~ fi
-
 if [ -e "${ETC_DIR}/ld.so.preload.disabled" ]; then
         mv "${ETC_DIR}/ld.so.preload.disabled" "${ETC_DIR}/ld.so.preload"
 fi
-
 
 #Create TAR Filesystem
 if [ "$CREATE_TARBALL" = true ] ; then
@@ -710,7 +702,6 @@ mkfs.ext4 "$ROOT_LOOP"
 mkdir -p "$BUILDDIR/mount"
 mount "$ROOT_LOOP" "$BUILDDIR/mount"
 
-#mkdir -p "$BUILDDIR/mount/boot/firmware"
 mkdir -p "$BUILDDIR/mount/boot"
 mount "$FRMW_LOOP" "$BUILDDIR/mount/boot"
 
@@ -729,16 +720,17 @@ if [ "$ENABLE_SPLITFS" = true ] ; then
   # Image was successfully created
   echo "$IMAGE_NAME-frmw.img ($(expr \( ${TABLE_SECTORS} + ${FRMW_SECTORS} \) \* 512 \/ 1024 \/ 1024)M)" ": successfully created"
   echo "$IMAGE_NAME-root.img ($(expr \( ${TABLE_SECTORS} + ${ROOT_SECTORS} \) \* 512 \/ 1024 \/ 1024)M)" ": successfully created"
+  
 else
   # Create block map file for "bmaptool"
   bmaptool create -o "$IMAGE_NAME.bmap" "$IMAGE_NAME.img"
-
-  # Image was successfully created
-  echo "$IMAGE_NAME.img ($(expr \( ${TABLE_SECTORS} + ${FRMW_SECTORS} + ${ROOT_SECTORS} \) \* 512 \/ 1024 \/ 1024)M)" ": successfully created"
-
+  
   # Compressing image
   gzip $IMAGE_NAME.img -c > $IMAGE_NAME.img.gz
   md5sum $IMAGE_NAME.img.gz > $IMAGE_NAME.md5
+
+  # Image was successfully created
+  echo "$IMAGE_NAME.img ($(expr \( ${TABLE_SECTORS} + ${FRMW_SECTORS} + ${ROOT_SECTORS} \) \* 512 \/ 1024 \/ 1024)M)" ": successfully created"
   
 fi
 

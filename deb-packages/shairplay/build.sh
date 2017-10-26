@@ -20,10 +20,7 @@ cd files-tmp
 ./configure --host=$CROSS_COMPILE PREFIX=/usr
 make -j4
 make install DESTDIR=${CURRENT_PATH}/files-tmp/debian/tmp
-echo "override_dh_usrlocal:" >> debian/rules
 echo "override_dh_shlibdeps:" >> debian/rules
-echo "override_dh_autoreconf:" >> debian/rules
-echo "override_dh_auto_configure:" >> debian/rules
 sed "s/Architecture: all/Architecture: $RELEASE_ARCH/g" -i debian/control
 dpkg-buildpackage -b -nc -us -uc -a $RELEASE_ARCH
 

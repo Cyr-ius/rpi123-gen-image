@@ -1,3 +1,0 @@
-# Configuration template file used by rpi23-gen-image.sh
-RPI_MODEL=3x64
-APT_INCLUDES_KERNEL="rpi3-firmware"

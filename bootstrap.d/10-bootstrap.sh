@@ -40,12 +40,13 @@ if [  ! -d "${BUILDDIR}/chroot-${RELEASE_ARCH}${RELEASE_VARIANT}" ]; then
   # Copy debian-archive-keyring.pgp
   mkdir -p "${R}/usr/share/keyrings"
   install_readonly /usr/share/keyrings/debian-archive-keyring.gpg "${R}/usr/share/keyrings/debian-archive-keyring.gpg"
-  #~ install_readonly files/apt/raspberrypi.gpg "${R}/usr/share/keyrings/raspberrypi.gpg"
 
   # Complete the bootstrapping process
   if [ "$(ls -A ${R}/debootstrap)" ] ; then
     chroot_exec /debootstrap/debootstrap --second-stage
   fi
+  
+  VERSION_ID=$(grep "^ID=" ${R}/etc/os-release | awk '{split($0,a,"="); print a[2]}')
 
   # Copy & save
   cp -af "${R}" "${BUILDDIR}/chroot-${RELEASE_ARCH}${RELEASE_VARIANT}"

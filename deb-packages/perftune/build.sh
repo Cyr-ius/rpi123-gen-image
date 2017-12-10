@@ -13,8 +13,7 @@ pull_source "${URL}" "files-tmp"
 
 #  Build package
 pushd files-tmp
-fix_arch $RELEASE_ARCH
-dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
+dpkg-buildpackage -us -uc -B -a$RELEASE_ARCH
 popd
 
 mkdir -p ../../packages

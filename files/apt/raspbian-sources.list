@@ -1,2 +1,0 @@
-deb APT_SERVER RELEASE main contrib
-#deb-src APT_SERVER RELEASE main contrib

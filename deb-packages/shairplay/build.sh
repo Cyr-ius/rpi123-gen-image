@@ -21,9 +21,7 @@ cd files-tmp
 make -j4
 make install DESTDIR=${CURRENT_PATH}/files-tmp/debian/tmp
 echo "override_dh_shlibdeps:" >> debian/rules
-sed "s/Architecture: all/Architecture: $RELEASE_ARCH/g" -i debian/control
-dpkg-buildpackage -b -nc -us -uc -a $RELEASE_ARCH
-
+dpkg-buildpackage -us -uc -B -a$RELEASE_ARCH
 cd ..
 
 mkdir -p ../../packages

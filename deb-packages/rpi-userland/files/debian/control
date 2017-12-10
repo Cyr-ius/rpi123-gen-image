@@ -6,21 +6,21 @@ Build-Depends: debhelper (>= 8.0.0)
 Homepage: https://github.com/cyr-ius/rpi23-gen-image
 
 Package: rpi-userland
-Architecture: all
+Architecture: any
 Depends: ${misc:Depends}
 Description: Raspberry Pi userland package
 
 Package: rpi-userland-dev
-Architecture: all
+Architecture: any
 Description: Raspberry Pi userland package with headers
 Depends: ${misc:Depends}, rpi-userland (=0)
 
 Package: rpi-userland-src
-Architecture: all
+Architecture: any
 Description: Raspberry Pi userland package with headers
 Depends: ${misc:Depends}, rpi-userland (=0)
 
 Package: rpi-bootloader
-Architecture: all
+Architecture: any
 Depends: ${misc:Depends}
 Description: Raspberry Pi Bootloader components

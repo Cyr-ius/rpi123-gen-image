@@ -1,2 +1,0 @@
-# Automatically purge old kernels when KBOX is updated
-export KBOX_KERNEL_AUTOREMOVE=1

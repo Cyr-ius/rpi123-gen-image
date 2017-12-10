@@ -69,7 +69,7 @@ sed "s/#DIST#/stretch/g" debian/changelog.in > debian/changelog
 sed "s/~stretch//g" -i debian/changelog
 sed "/CMAKE/d" -i debian/rules
 sed '51,60d' -i debian/control
-dpkg-buildpackage -d -B -us -uc -a $RELEASE_ARCH
+dpkg-buildpackage -d -B -us -uc -a$RELEASE_ARCH
 cd ..
 
 mkdir -p ../../packages

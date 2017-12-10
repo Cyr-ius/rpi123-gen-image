@@ -83,8 +83,9 @@ WLAN_FIRMWARE_DIR="${R}/lib/firmware/brcm"
 
 # Firmware directory: Blank if download from github
 RPI_FIRMWARE_DIR=${RPI_FIRMWARE_DIR:=${BUILDDIR}/firmware}
-TOOLS_DIR=${TOOLS_DIR:=$(pwd)/tools}
+#~ TOOLS_DIR=${TOOLS_DIR:=$(pwd)/tools}
 DEB_PACKAGES=${DEB_PACKAGES:="$(pwd)/deb-packages"}
+NOOBS_DIR=${NOOBS_DIR:=$(pwd)/noobs}
 
 # General settings
 HOST_NAME=${HOST_NAME:=rbp${RPI_MODEL}}
@@ -97,7 +98,7 @@ EXPANDROOT=${EXPANDROOT:=true}
 
 # Prepare date string for default image file name
 DATE="$(date +%Y-%m-%d)"
-IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${DATE}-${HOST_NAME}-${RPI_MODEL}-${RELEASE}}
+IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${HOST_NAME}${RPI_MODEL}-${RELEASE}-${DATE}}
 
 # Keyboard settings
 XKB_MODEL=${XKB_MODEL:=""}
@@ -119,6 +120,7 @@ NET_NTP_2=${NET_NTP_2:=""}
 
 # APT settings
 ENABLE_RASPBIAN=${ENABLE_RASPBIAN:=true}
+ENABLE_IPOCUS=${ENABLE_IPOCUS:=true}
 APT_PROXY=${APT_PROXY:=""}
 APT_SERVER=${APT_SERVER:="http://ftp.debian.org/debian"}
 [ "$ENABLE_RASPBIAN" = true ] && APT_SERVER="http://mirrordirector.raspbian.org/raspbian"
@@ -142,11 +144,12 @@ ENABLE_WM=${ENABLE_WM:=""}
 ENABLE_RSYSLOG=${ENABLE_RSYSLOG:=true}
 ENABLE_USER=${ENABLE_USER:=true}
 ENABLE_ROOT=${ENABLE_ROOT:=false}
+ENABLE_SPLASHSCREEN=${ENABLE_SPLASHSCREEN:=false}
 
 #Kodi Mediacenter
-ENABLE_SPLASHSCREEN=${ENABLE_SPLASHSCREEN:=false}
 ENABLE_KODI=${ENABLE_KODI:=false}
-ENABLE_KODI_AUTOSTART=${ENABLE_KODI_AUTOSTART:=true}
+ENABLE_KODI_AUTOSTART=${ENABLE_KODI_AUTOSTART:=false}
+ENABLE_KODI_SPLASHSCREEN=${ENABLE_KODI_SPLASHSCREEN:=false}
 
 # SSH settings
 SSH_ENABLE_ROOT=${SSH_ENABLE_ROOT:=false}
@@ -166,13 +169,13 @@ ENABLE_HARDNET=${ENABLE_HARDNET:=false}
 ENABLE_IPTABLES=${ENABLE_IPTABLES:=false}
 ENABLE_SPLITFS=${ENABLE_SPLITFS:=false}
 ENABLE_INITRAMFS=${ENABLE_INITRAMFS:=false}
-ENABLE_IFNAMES=${ENABLE_IFNAMES:=true}
+ENABLE_IFNAMES=${ENABLE_IFNAMES:=false}
 DISABLE_UNDERVOLT_WARNINGS=${DISABLE_UNDERVOLT_WARNINGS:=}
 CREATE_TARBALL=${CREATE_TARBALL:=false}
 CREATE_NOOBS=${CREATE_NOOBS:=false}
 
 # Kernel compilation settings
-BUILD_KERNEL=${BUILD_KERNEL:=true}
+BUILD_KERNEL=${BUILD_KERNEL:=false}
 KERNEL_REDUCE=${KERNEL_REDUCE:=false}
 KERNEL_THREADS=${KERNEL_THREADS:=1}
 KERNEL_HEADERS=${KERNEL_HEADERS:=true}
@@ -222,26 +225,6 @@ COMPILER_PACKAGES=""
 
 set +x
 
-# Clean all flags, building folder and sources
-if [ "$RESET" = true ]; then
-  echo "Reset flags in bootstrap.d and custom.d and delete linux,firmware and tools folders"
-  [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
-  [ -d "custom.d/flags" ] && rm -rf custom.d/flags
-  [ -d "linux" ] && rm -rf linux
-  [ -d "firmware" ] && rm -rf firmware
-  [ -d "tools" ] && rm -rf tools
-  [ -d "packages" ] && rm -rf packages
-  [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}  
-fi
-
-# Clean all flags  and building folder
-if [ "$CLEAN" = true ]; then
-  echo "Reset flags in bootstrap.d and custom.d folders"
-  [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
-  [ -d "custom.d/flags" ] && rm -rf custom.d/flags
-  [ -d "${BUILDDIR}/chroot" ] && rm -rf "${BUILDDIR}/chroot"
-fi
-
 # Add packages required for kernel cross compilation
 if [ "$BUILD_KERNEL" = true ] ; then
   REQUIRED_PACKAGES="${REQUIRED_PACKAGES} crossbuild-essential-armhf crossbuild-essential-armel crossbuild-essential-arm64"
@@ -290,11 +273,6 @@ fi
 # Add cryptsetup package to enable filesystem encryption
 if [ "$ENABLE_CRYPTFS" = true ] ; then
   APT_INCLUDES="${APT_INCLUDES} cryptsetup busybox"
-fi
-
-# Add initramfs generation tools
-if [ "$ENABLE_INITRAMFS" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} initramfs-tools"
 fi
 
 # Add device-tree-compiler required for building the U-Boot bootloader
@@ -350,7 +328,12 @@ fi
 
 # Add xorg package
 if [ "$ENABLE_XORG" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} xorg"
+  APT_INCLUDES="${APT_INCLUDES} xorg dbus-x11"
+fi
+
+# Add Kodi splashscreen
+if [ "$ENABLE_KODI_SPLASHSCREEN" = true ]; then
+  ENABLE_SPLASHSCREEN=true
 fi
 
 # Add plymouth & plymouth's theme package
@@ -396,6 +379,13 @@ if [ "$ENABLE_REDUCE" = true ] ; then
   fi
 fi
 
+# Add initramfs generation tools
+if [ "$ENABLE_INITRAMFS" = true ] ; then
+  APT_INCLUDES="${APT_INCLUDES} initramfs-tools"
+fi
+
+################################# Check integrity ####################################
+
 # Check if root SSH (v2) public key file exists
 if [ ! -z "$SSH_ROOT_PUB_KEY" ] ; then
   if [ ! -f "$SSH_ROOT_PUB_KEY" ] ; then
@@ -423,7 +413,6 @@ done
 if [ -n "$MISSING_PACKAGES" ] ; then
   echo "the following packages needed by this script are not installed:"
   echo "$MISSING_PACKAGES"
-
   echo -n "\ndo you want to install the missing packages right now? [y/n] "
   read confirm
   [ "$confirm" != "y" ] && exit 1
@@ -480,16 +469,30 @@ if [ "$ENABLE_SPLASHSCREEN" = true ] && [ "$ENABLE_INITRAMFS" = false ]; then
   exit 1
 fi
 
-# Pull Tools source if url is not empty
-if [ -n "$TOOLS_URL" ]; then
-  echo "Pull tools source"
-  pull_source "${TOOLS_URL}" "${TOOLS_DIR}"
-  chmod ugo+rw "${TOOLS_DIR}"
+# Clean all flags, building folder and sources
+if [ "$RESET" = true ]; then
+  echo "Reset flags in bootstrap.d and custom.d and delete firmware and tools folders"
+  [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
+  [ -d "custom.d/flags" ] && rm -rf custom.d/flags
+  #~ [ -d "${TOOLS_DIR}" ] && rm -rf ${TOOLS_DIR}
+  [ -d "packages" ] && rm -rf packages
+  [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}  
 fi
 
-# Setup chroot directory
-mkdir -p "${R}"
-chmod ugo+rw "${R}"
+set -x
+
+################################# Main ####################################
+
+# Call "cleanup" function on various signals and errors
+trap cleanup 0 1 2 3 6
+
+# Clean all flags  and building folder
+if [ "$CLEAN" = true ]; then
+  echo "Reset flags in bootstrap.d and custom.d folders"
+  [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
+  [ -d "custom.d/flags" ] && rm -rf custom.d/flags
+  [ -d "${R}" ] && rm -rf "${R}"
+fi
 
 # Check if build directory has enough of free disk space >512MB
 if [ "$(df --output=avail ${BUILDDIR} | sed "1d")" -le "524288" ] ; then
@@ -497,14 +500,11 @@ if [ "$(df --output=avail ${BUILDDIR} | sed "1d")" -le "524288" ] ; then
   exit 1
 fi
 
-set -x
-
-# Call "cleanup" function on various signals and errors
-trap cleanup 0 1 2 3 6
+# Setup chroot directory
+mkdir -p "${R}" && chmod ugo+rw "${R}"
 
 # Execute bootstrap scripts
-mkdir -p "bootstrap.d/flags"
-chmod o+rw "bootstrap.d/flags"
+mkdir -p "bootstrap.d/flags" && chmod o+rw "bootstrap.d/flags"
 for SCRIPT in bootstrap.d/*.sh; do
   head -n 3 "$SCRIPT"
   FLAG=$(basename "$SCRIPT")
@@ -515,8 +515,7 @@ for SCRIPT in bootstrap.d/*.sh; do
 done
 
 # Execute custom bootstrap scripts
-mkdir -p "custom.d/flags"
-chmod o+rw "custom.d/flags"
+mkdir -p "custom.d/flags" && chmod o+rw "custom.d/flags"
 if [ -d "custom.d" ]; then
   for SCRIPT in custom.d/*.sh; do
     FLAG=$(basename "$SCRIPT")
@@ -540,6 +539,8 @@ EOF
   rm -rf "${R}/chroot_scripts"
 fi
 
+################################# Finalize and prepare image ####################################
+
 # Remove c/c++ build environment from the chroot
 chroot_remove_cc
 
@@ -554,7 +555,7 @@ echo -n "${MACHINE_ID}" > "${R}/var/lib/dbus/machine-id"
 echo -n "${MACHINE_ID}" > "${ETC_DIR}/machine-id"
 
 # OS Release
-NAME="An Another GNU/Linux Debian"
+NAME="GNU/Linux Raspbian"
 VERSION=$(awk '/VERSION=/ {split($0,a,"\""); print a[2]}' ${R}/usr/lib/os-release)
 sed "/^NAME/c\NAME=\"$NAME\"" -i ${R}/usr/lib/os-release
 sed "/^PRETTY/c\PRETTY_NAME=\"$NAME $VERSION\"" -i ${R}/usr/lib/os-release
@@ -601,20 +602,40 @@ fi
 
 #Create NOOBS Installer
 if [ "$CREATE_NOOBS" = true ] ; then
+        echo -e "Building NOOBS filesystem image"
+        NOOBS_OS="${NOOBS_DIR}/${HOST_NAME}"
+        rm -rf "$NOOBS_OS"
+	mkdir -p "$NOOBS_OS"
+        chmod ugo+rw $NOOBS_OS
+	
+        echo -e "Creating Boot tarball"
 	pushd "${R}/boot" 
 	UNC_TS_SIZE_BOOT=$(du -h --max-depth=0 . | awk {'print $1'} | tr -d 'M')
 	echo "noobs" > vendor
-	tar -cf - * | xz -9 -c - > boot-${HOSTNAME}.tar.xz
-	mv root-${1}.tar.xz "${BASEDIR}/noobs"
+	tar -cf - * | xz -9 -c - > "$NOOBS_OS/boot.tar.xz"
 	popd
 
+        echo -e "Creating System tarball"
 	pushd "${R}" 
 	UNC_TS_SIZE_ROOT=$(du -h --max-depth=0 . | awk {'print $1'} | tr -d 'M')
-	tar -cf - * | xz -9 -c - > root-${HOSTNAME}.tar.xz
-	popd
-
-	sed -e s/UNC_TS_SIZE_BOOT/${UNC_TS_SIZE_BOOT}/ -i noobs/partitions-pi${RPI_MODEL}.json
-	sed -e s/UNC_TS_SIZE_ROOT/${UNC_TS_SIZE_ROOT}/ -i noobs/partitions-pi${RPI_MODEL}.json
+	tar --exclude='boot' -cf - * | xz -9 -c - > "$NOOBS_OS/root.tar.xz"
+	popd	        
+        
+	cp ${NOOBS_DIR}/partitions.json $NOOBS_OS/partitions.json	
+	sed -e s/#UNC_TS_SIZE_BOOT#/${UNC_TS_SIZE_BOOT}/  -i $NOOBS_OS/partitions.json
+	sed -e s/#UNC_TS_SIZE_ROOT#/${UNC_TS_SIZE_ROOT}/ -i $NOOBS_OS/partitions.json
+	
+	cp ${NOOBS_DIR}/os.json $NOOBS_OS/os.json
+	sed -e s/#HOSTNAME#/$HOST_NAME/ -i $NOOBS_OS/os.json
+	sed -e s/#DATE#/$DATE/ -i $NOOBS_OS/os.json	
+	sed -e s/#KERNEL#/$KERNEL/ -i $NOOBS_OS/os.json
+	sed -e s/#USER_NAME#/$USER_NAME/ -i $NOOBS_OS/os.json
+	sed -e s/#USER_PASSWORD#/$USER_PASSWORD/ -i $NOOBS_OS/os.json
+        
+	cp -R ${NOOBS_DIR}/slides_vga $NOOBS_OS/
+	cp ${NOOBS_DIR}/${HOST_NAME}.png $NOOBS_OS/
+	cp ${NOOBS_DIR}/partition_setup.sh $NOOBS_OS/
+	cp ${NOOBS_DIR}/release_notes.txt $NOOBS_OS/
 fi
 
 

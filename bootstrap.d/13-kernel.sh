@@ -1,5 +1,5 @@
 #
-# Build and Setup RPi2/3 Kernel
+# Build and Setup RPi1/2/3 Kernel
 #
 
 # Load utility functions
@@ -20,12 +20,11 @@ install_exec files/kernel/preinst.d/preprocess-vmlinuz "${ETC_DIR}/kernel/preins
 install_readonly files/kernel/kernel-img.conf "${ETC_DIR}"
 
 # Install Kernel package if exists
-if [ ! -z "$APT_INCLUDES_KERNEL" ] ; then
+if [ -n "$(search_deb $APT_INCLUDES_KERNEL)" ]; then 
 {
-  chroot_exec "apt --fix-broken install"
   install_deb $APT_INCLUDES_KERNEL
   if [ ! $? ]; then
-	echo "error: kernel not found"
+	echo "error: The installation of the package $APT_INCLUDES_KERNEL failed"
 	cleanup
 	exit 1
   fi
@@ -36,13 +35,13 @@ if [ ! -z "$APT_INCLUDES_KERNEL" ] ; then
 if [ "$BUILD_KERNEL" = true ] ; then
 {
 	# Setup source directory
-	mkdir -p "${R}/usr/src"
+	mkdir -p "${R}/usr/src/linux"
 
 	# Copy existing kernel sources into chroot directory
 	if [ -n "$KERNELSRC_DIR" ] && [ -d "$KERNELSRC_DIR" ] ; then
 	{
 	    # Copy kernel sources
-	    cp -r "${KERNELSRC_DIR}" "${R}/usr/src/linux"
+	    cp -r "${KERNELSRC_DIR}/*" "${R}/usr/src/linux"
 
 	    # Clean the kernel sources
 	    if [ "$KERNELSRC_CLEAN" = true ] && [ "$KERNELSRC_PREBUILT" = false ] ; then
@@ -54,15 +53,15 @@ if [ "$BUILD_KERNEL" = true ] ; then
 		# Create temporary directory for kernel sources
 		temp_dir=$(as_nobody mktemp -d)
 
-		# Fetch current RPi2/3 kernel sources
+		# Fetch current RPi1/2/3 kernel sources
 		if [ -z "${KERNEL_BRANCH}" ] ; then
-		      as_nobody -u nobody git -C "${temp_dir}" clone --depth=1 "${KERNEL_URL}"
+		      as_nobody -u nobody git -C "${temp_dir}" clone --depth=1 "${KERNEL_URL}" linux
 		    else
-		      as_nobody -u nobody git -C "${temp_dir}" clone --depth=1 --branch "${KERNEL_BRANCH}" "${KERNEL_URL}"
+		      as_nobody -u nobody git -C "${temp_dir}" clone --depth=1 --branch "${KERNEL_BRANCH}" "${KERNEL_URL}" linux
 		fi
 
 		# Copy downloaded kernel sources
-		mv "${temp_dir}/linux" "${R}/usr/src/"
+		mv "${temp_dir}/linux/*" "${R}/usr/src/minux/"
 
 		# Remove temporary directory for kernel sources
 		rm -fr "${temp_dir}"
@@ -204,22 +203,25 @@ if [ "$BUILD_KERNEL" = true ] ; then
 		chroot_exec ln -sf /usr/src/linux "${R}/lib/modules/${KERNEL_VERSION}/source"
 	} fi
 }
-else
+elif [ -n "$FIRMWARE_URL" ] && [ -n "$RPI_FIRMWARE_DIR" ]; then
 {
-	if [  -d "${RPI_FIRMWARE_DIR}" ]; then
-	{
-		# Copy kernel and modules
-		cp -r "${RPI_FIRMWARE_DIR}/boot" "${R}"
-		cp -r "${RPI_FIRMWARE_DIR}/modules" "${R}/lib"
-		
-		#Get version
-		KERNEL_VERSION="$(ls ${RPI_FIRMWARE_DIR}/modules | sort -r | head -1)"
-		echo $KERNEL_VERSION > "${BOOT_DIR}/kernel.release"
-	} 
-	else 
-	{
-		echo "error: kernel not found"
-		cleanup
-		exit 1
-	} fi     
+	# Download firmware source
+	pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
+	chmod ugo+rw "${RPI_FIRMWARE_DIR}"
+    
+	# Copy kernel and modules
+	cp -r "${RPI_FIRMWARE_DIR}/boot" "${R}"
+	cp -r "${RPI_FIRMWARE_DIR}/modules" "${R}/lib"
+	
+	#Get version
+	KERNEL_VERSION="$(ls ${RPI_FIRMWARE_DIR}/modules |grep -P '[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}' -o | head -1)"
+	[ $RPI_MODEL = 0 ] || [ $RPI_MODEL = 1 ] && KERNEL_VERSION=$KERNEL_VERSION+
+	[ $RPI_MODEL = 2 ] || [ $RPI_MODEL = 3 ] && KERNEL_VERSION=$KERNEL_VERSION-v7+
+	echo $KERNEL_VERSION > "${BOOT_DIR}/kernel.release"
+} 
+else 
+{
+	echo "error: kernel not found"
+	cleanup
+	exit 1
 } fi

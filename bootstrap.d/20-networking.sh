@@ -11,13 +11,11 @@ else
 	ETH_IF=eth
 fi 
 # Install and setup hostname
-#~ install_readonly files/network/hostname "${ETC_DIR}/hostname"
-#~ sed -i "s/^rpi2-jessie/${HOST_NAME}/" "${ETC_DIR}/hostname"
 echo "${HOST_NAME}" > "${ETC_DIR}/hostname"
 
 # Install and setup hosts
 install_readonly files/network/hosts "${ETC_DIR}/hosts"
-sed -i "s/rpi2-jessie/${HOST_NAME}/" "${ETC_DIR}/hosts"
+sed -i "s/rpi/${HOST_NAME}/" "${ETC_DIR}/hosts"
 
 # Setup hostname entry with static IP
 if [ "$NET_ADDRESS" != "" ]; then
@@ -90,10 +88,12 @@ if [ "NET_NTP_1" != "" ] ; then
 fi
 
 #Display Ip address on TTY
-echo "${ETH_IF}0: \4{${ETH_IF}0}" >> "${ETC_DIR}/issue"
-echo "" >> "${ETC_DIR}/issue"
+if [ "$ENABLE_IFNAMES" = false ] ; then
+	echo "${ETH_IF}0: \4{${ETH_IF}0}" >> "${ETC_DIR}/issue"
+	echo "" >> "${ETC_DIR}/issue"
+fi
 
-# Download the firmware binary blob required to use the RPi3 wireless interface
+# Download the firmware binary blob required to use the RPi0w/3 wireless interface
 if [ "$ENABLE_WIRELESS" = true ]; then
 	# Disable IPv6
 	if [ "$ENABLE_IPV6" = false ]; then
@@ -115,8 +115,6 @@ if [ "$ENABLE_WIRELESS" = true ]; then
 	
 	#Copy user wpa_supplicant.conf
 	install_readonly files/network/wireless-setting.service "${R}/lib/systemd/system"
-	chroot_exec systemctl enable wireless-setting.service	
-	
-	
+	chroot_exec systemctl enable wireless-setting.service
 fi
   

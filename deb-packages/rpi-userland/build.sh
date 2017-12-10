@@ -15,7 +15,7 @@ RESET=true
 
 #Pull source
 URL="https://github.com/raspberrypi/linux"
-pull_source "${URL}" "linux"
+pull_source "${URL}" "linux" "rpi-4.14.y"
 
 if [ -d "linux" ]; then
 
@@ -27,13 +27,13 @@ if [ -d "linux" ]; then
    KERNEL_THREADS=$(grep -c processor /proc/cpuinfo)
 
    # Clean the kernel sources
-   make -C "linux" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" mrproper
+   make -j4 -C "linux" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" mrproper
 
    # Load default raspberry kernel configuration
-   make -C "linux" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" "${KERNEL_DEFCONFIG}"
+   make -j4 -C "linux" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" "${KERNEL_DEFCONFIG}"
   
    # Cross compile kernel and modules
-   make deb-pkg -C "linux" -j$KERNEL_THREADS ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" "${KERNEL_BIN_IMAGE}" modules dtbs && echo "Make and package successful" || echo "Warning while make kernel"
+   make -j4 deb-pkg  -C "linux" -j$KERNEL_THREADS ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" "${KERNEL_BIN_IMAGE}" modules dtbs && echo "Make and package successful" || echo "Warning while make kernel"
 
    
    # Create metapackage
@@ -46,17 +46,16 @@ if [ -d "linux" ]; then
    sed "s/rpi-firmware/rpi$RPI_TYPE-firmware/g" -i debian/changelog
    sed "s/rpi-firmware/rpi$RPI_TYPE-firmware/g" -i debian/control
    sed '/Depends/d' -i debian/control
-   echo "Depends: \${misc:Depends}, rpi$RPI_TYPE-bootloader (=${version}), rpi$RPI_TYPE-userland (=${version}), linux-firmware-image-${release} (=${version}), linux-image-${release} (=${version}), linux-libc-dev (>=${version})" >> debian/control
+   echo "Depends: \${misc:Depends}, rpi$RPI_TYPE-bootloader (=${version}), rpi$RPI_TYPE-userland (=${version}), linux-image-${release} (=${version}), linux-libc-dev (>=${version})" >> debian/control
    fix_version $version
    fix_distribution "stretch"
-   fix_arch $RELEASE_ARCH
-   dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
+   dpkg-buildpackage -B -us -uc -a$RELEASE_ARCH
    cd ..
 fi
 
 #Pull source
 URL="https://github.com/raspberrypi/firmware"
-pull_source "${URL}" "firmware"
+pull_source "${URL}" "firmware" "next"
 
 if [ -d "firmware" ]; then
 
@@ -72,13 +71,13 @@ echo "override_dh_shlibdeps:" >> debian/rules
 rename "s/rpi-/rpi$RPI_TYPE-/" debian/rpi-*
 fix_version $version
 fix_distribution "stretch"
-dpkg-buildpackage -B -us -uc -a $RELEASE_ARCH
+dpkg-buildpackage -B -us -uc -a$RELEASE_ARCH
 cd ..
 
 mkdir -p ../../packages
 mv rpi* linux-* ../../packages
 
-#~ rm -rf *-tmp
+rm -rf *-tmp
 
 else
  echo "Firmware folder not exist"

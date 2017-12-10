@@ -96,11 +96,6 @@ install_deb() {
   # Install debian packages
   chroot_exec apt-get -o Dpkg::Options::="--force-confnew" -q -y --allow-unauthenticated --no-install-recommends install $*
 }
-#~ fix_version() {
-	#~ [ -n $2 ] && CONTROL=$2 || CONTROL="debian/control"
-	#~ sed '/Version/d' -i $CONTROL
-	#~ echo "Version: $1" >> $CONTROL
-#~ }
 fix_version() {
 	[ $2 ] && CONTROL=$2 || CONTROL="debian/changelog"
         sed "s/#VERSION#/$1/g" -i $CONTROL
@@ -155,12 +150,19 @@ pull_source() {
 
 	if [[ $1 =~ git ]]; then
           echo -e "Detected Git source"
-          if [[ "$3" =~ "clean" ]]; then rm -rf ${2};fi
-          git clone  ${1} ${2} --depth 1 || if [ "$RESET" = "false" ]; then return; fi
+          if [ "$4" = "clean" ]; then rm -rf ${2};fi
+          [ ! -d $2 ] && git clone ${1} ${2} --depth 1 
           echo -e "Detected Git update"
           pushd ${2}
-          git clean -xfd ; git checkout -- * ; git pull ;
+          git clean -xffd; git checkout -- *; git pull;
+          echo -e "Detected Git branch"
           popd
+          if [ ! -z $3 ];then
+            if [ ! `git branch | grep $3` ]; then
+              rm -rf ${2}
+              git clone  -b ${3} ${1} ${2} --depth 1
+            fi
+          fi
           if [ $? != 0 ]; then echo "Source checkout failed" && exit 1; fi
           return
 	fi

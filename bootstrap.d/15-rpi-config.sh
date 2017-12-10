@@ -1,20 +1,14 @@
 #
-# Setup RPi2/3 config and cmdline
+# Setup RPi1/2/3 config and cmdline
 #
 
 # Load utility functions
 . ./functions.sh
 
-# Download Firmware source if url is not empty
-if [ -n "$FIRMWARE_URL" ] && [ -n "$RPI_FIRMWARE_DIR" ] ;then
-  pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
-  chmod ugo+rw "${RPI_FIRMWARE_DIR}"
-fi
-
 if [ "$BUILD_KERNEL" = true  ] ; then
 {
-  if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ]; then
-  {
+  if [ -d "$RPI_FIRMWARE_DIR" ]; then
+  {  
    # Install boot binaries from local directory
     [ ! -f "${BOOT_DIR}/bootcode.bin" ] && cp ${RPI_FIRMWARE_DIR}/boot/bootcode.bin ${BOOT_DIR}/bootcode.bin
     [ ! -f "${BOOT_DIR}/fixup.dat" ] && cp ${RPI_FIRMWARE_DIR}/boot/fixup.dat ${BOOT_DIR}/fixup.dat
@@ -78,7 +72,7 @@ fi
 
 # Automatically assign predictable network interface names
 if [ "$ENABLE_IFNAMES" = false ] ; then
-  CMDLINE="${CMDLINE} net.ifnames=0"
+  CMDLINE="${CMDLINE} net.ifnames=0 bios.devname=0"
 else
   CMDLINE="${CMDLINE} net.ifnames=1"
 fi
@@ -90,7 +84,8 @@ fi
 
 # Disable blinking cursor on splashscreen
 if [ "$ENABLE_SPLASHSCREEN" = true ]; then
-  CMDLINE="${CMDLINE} vt.global_cursor_default=0"
+  CMDLINE="${CMDLINE} vt.global_cursor_default=0 quiet splash plymouth.ignore-serial-consoles"
+  echo "disable_splash=1" >> "${BOOT_DIR}/config.txt" 
 fi
 
 # Install firmware boot cmdline
@@ -110,7 +105,6 @@ else
   echo "disable_overscan=1" >> "${BOOT_DIR}/config.txt"
   echo "start_x=1" >> "${BOOT_DIR}/config.txt"
   echo "dtoverlay=lirc-rpi:gpio_out_pin=17,gpio_in_pin=18" >> "${BOOT_DIR}/config.txt"
-  [ "$ENABLE_SPLASHSCREEN" = true ] && echo "disable_splash=1" >> "${BOOT_DIR}/config.txt"  
 fi
 
 # Setup boot with initramfs
@@ -129,16 +123,16 @@ fi
 
 # Install and setup kernel modules to load at boot
 mkdir -p "${R}/lib/modules-load.d/"
-install_readonly files/modules/rpi2.conf "${R}/lib/modules-load.d/rpi2.conf"
+install_readonly files/modules/rpi.conf "${R}/lib/modules-load.d/rpi.conf"
 
 # Load hardware random module at boot
 #~ if [ "$ENABLE_HWRANDOM" = true ] && [ "$BUILD_KERNEL" = false ] ; then
-  #~ sed -i "s/^# bcm2708_rng/bcm2708_rng/" "${R}/lib/modules-load.d/rpi2.conf"
+  #~ sed -i "s/^# bcm2708_rng/bcm2708_rng/" "${R}/lib/modules-load.d/rpi.conf"
 #~ fi
 
 # Load sound module at boot
 if [ "$ENABLE_SOUND" = true ] ; then
-  sed -i "s/^# snd_bcm2835/snd_bcm2835/" "${R}/lib/modules-load.d/rpi2.conf"
+  sed -i "s/^# snd_bcm2835/snd_bcm2835/" "${R}/lib/modules-load.d/rpi.conf"
 else
   echo "dtparam=audio=off" >> "${BOOT_DIR}/config.txt"
 fi
@@ -146,20 +140,20 @@ fi
 # Enable I2C interface
 if [ "$ENABLE_I2C" = true ] ; then
   echo "dtparam=i2c_arm=on" >> "${BOOT_DIR}/config.txt"
-  sed -i "s/^# i2c-bcm2708/i2c-bcm2708/" "${R}/lib/modules-load.d/rpi2.conf"
-  sed -i "s/^# i2c-dev/i2c-dev/" "${R}/lib/modules-load.d/rpi2.conf"
+  sed -i "s/^# i2c-bcm2708/i2c-bcm2708/" "${R}/lib/modules-load.d/rpi.conf"
+  sed -i "s/^# i2c-dev/i2c-dev/" "${R}/lib/modules-load.d/rpi.conf"
 fi
 
 # Enable SPI interface
 if [ "$ENABLE_SPI" = true ] ; then
   echo "dtparam=spi=on" >> "${BOOT_DIR}/config.txt"
-  echo "spi-bcm2708" >> "${R}/lib/modules-load.d/rpi2.conf"
+  echo "spi-bcm2708" >> "${R}/lib/modules-load.d/rpi.conf"
   if [ "$RPI_MODEL" = 3 ] ; then
-    sed -i "s/spi-bcm2708/spi-bcm2835/" "${R}/lib/modules-load.d/rpi2.conf"
+    sed -i "s/spi-bcm2708/spi-bcm2835/" "${R}/lib/modules-load.d/rpi.conf"
   fi
 fi
 
-# Disable RPi2/3 under-voltage warnings
+# Disable RPi1/2/3 under-voltage warnings
 if [ ! -z "$DISABLE_UNDERVOLT_WARNINGS" ] ; then
   echo "avoid_warnings=${DISABLE_UNDERVOLT_WARNINGS}" >> "${BOOT_DIR}/config.txt"
 fi
@@ -171,9 +165,11 @@ install_readonly files/modules/raspi-blacklist.conf "${ETC_DIR}/modprobe.d/raspi
 # Install sysctl.d configuration files
 install_readonly files/sysctl.d/81-rpi-vm.conf "${ETC_DIR}/sysctl.d/81-rpi-vm.conf"
 
-if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] && [ -z $APT_INCLUDES_KERNEL ] ; then
+if [ -d "$RPI_FIRMWARE_DIR" ]; then
   # Move downloaded firmware binary blob
-  cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
+  [ $RPI_MODEL = 0 ] || [ $RPI_MODEL = 1 ] &&  cp -r "${RPI_FIRMWARE_DIR}/opt/vc" "${R}/opt"
+  [ $RPI_MODEL = 2 ] || [ $RPI_MODEL = 3 ] &&  cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"
+
   # Install VC libraries
   echo "/opt/vc/lib" > "${ETC_DIR}/ld.so.conf.d/00-vmcs.conf"
 fi

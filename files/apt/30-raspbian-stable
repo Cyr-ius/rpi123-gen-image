@@ -1,0 +1,8 @@
+Package: *
+Pin: release o=Raspbian,a=stable,n=stretch
+Pin-Priority: 500
+
+Package: kodi*
+Pin: release o=Raspbian,a=stable,n=stretch
+Pin-Priority: -1
+

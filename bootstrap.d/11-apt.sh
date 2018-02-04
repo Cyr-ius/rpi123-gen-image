@@ -11,7 +11,8 @@ if [ -z "$APT_PROXY" ] ; then
   sed -i "s/\"\"/\"${APT_PROXY}\"/" "${ETC_DIR}/apt/apt.conf.d/10-proxy"
 fi
 
-# Install APT configuration files   
+# Install APT configuration files
+install_readonly files/apt/30-raspbian-stable "${ETC_DIR}/apt/preferences.d"
 install_readonly files/apt/06-noipv6 "${ETC_DIR}/apt/apt.conf.d"
 
 install_deb "gnupg2"

@@ -149,20 +149,23 @@ pull_source() {
 	fi
 
 	if [[ $1 =~ git ]]; then
-          echo -e "Detected Git source"
-          if [ "$4" = "clean" ]; then rm -rf ${2};fi
-          [ ! -d $2 ] && git clone ${1} ${2} --depth 1 
-          echo -e "Detected Git update"
-          pushd ${2}
-          git clean -xffd; git checkout -- *; git pull;
-          echo -e "Detected Git branch"
-          popd
-          if [ ! -z $3 ];then
-            if [ ! `git branch | grep $3` ]; then
+          if [ "$4" = "clean" ]; then 
+            echo -e "Detected Clean Git source"
+            rm -rf ${2}
+          fi
+          if [ -d $2 ] && [ -n $3 ]; then
+            if [ -z $(git -C $2 branch | grep -o "$3") ]; then
+              echo -e "Detected Clean Git source"
               rm -rf ${2}
-              git clone  -b ${3} ${1} ${2} --depth 1
             fi
           fi
+          echo -e "Detected Git source"
+          [ ! -d $2 ] && [ -z $3 ] && git clone ${1} ${2} --depth 1
+          [ ! -d $2 ] && [ -n $3 ] && git clone -b ${3} ${1} ${2} --depth 1
+          echo -e "Detected Git update"
+          pushd ${2}
+          git clean -xffd;git checkout -- *;git pull;
+          popd
           if [ $? != 0 ]; then echo "Source checkout failed" && exit 1; fi
           return
 	fi

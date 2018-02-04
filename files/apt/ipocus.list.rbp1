@@ -1,1 +1,2 @@
 deb http://packages.ipocus.net stretch main rbp1
+#deb http://packages.ipocus.net sid main rbp1

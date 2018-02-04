@@ -1,0 +1,12 @@
+{
+	"name": "#HOSTNAME#",
+	"url":	"https://kbox.tv",
+	"version": "2017.05-25",
+	"release_date": "#DATE#",
+	"kernel": "#KERNEL#",
+	"description": "An another media center",
+	"username": "#USER_NAME#",
+	"password": "#USER_PASSWORD#",
+	"supported_hex_revisions": "2,3,4,5,6,7,8,9,d,e,f,10,11,12,14,19,0092,0093",
+	"supported_models": ["Pi Model","Pi 2","Pi Zero","Pi 3","Pi Compute Module 3"]
+}

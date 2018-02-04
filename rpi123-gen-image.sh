@@ -84,7 +84,7 @@ WLAN_FIRMWARE_DIR="${R}/lib/firmware/brcm"
 # Firmware directory: Blank if download from github
 RPI_FIRMWARE_DIR=${RPI_FIRMWARE_DIR:=${BUILDDIR}/firmware}
 #~ TOOLS_DIR=${TOOLS_DIR:=$(pwd)/tools}
-DEB_PACKAGES=${DEB_PACKAGES:="$(pwd)/deb-packages"}
+#~ DEB_PACKAGES=${DEB_PACKAGES:="$(pwd)/deb-packages"}
 NOOBS_DIR=${NOOBS_DIR:=$(pwd)/noobs}
 
 # General settings
@@ -343,7 +343,7 @@ fi
 
 # Add Kodi package
 if [ "$ENABLE_KODI" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-audioencoder-wav kodi-audioencoder-vorbis kodi-audioencoder-lame kodi-audioencoder-flac kodi-audiodecoder-vgmstream kodi-audiodecoder-timidity kodi-audiodecoder-stsound kodi-audiodecoder-snesapu kodi-audiodecoder-sidplay kodi-audiodecoder-nosefart kodi-audiodecoder-modplug kodi-pvr-wmc kodi-pvr-vuplus kodi-pvr-vdr-vnsi kodi-pvr-vbox kodi-pvr-stalker kodi-pvr-pctv kodi-pvr-njoy kodi-pvr-nextpvr kodi-pvr-mythtv kodi-pvr-mythtv kodi-pvr-iptvsimple kodi-pvr-hts kodi-pvr-hdhomerun kodi-pvr-filmon kodi-pvr-dvbviewer kodi-pvr-dvblink kodi-pvr-demo kodi-pvr-argustv kodi-inputstream-rtmp kodi-inputstream-adaptive kodi-inputstream-rtmp kodi-inputstream-adaptive libsmbclient python-apt python-aptdaemon libcec"
+  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-audioencoder-wav kodi-audioencoder-vorbis kodi-audioencoder-lame kodi-audioencoder-flac kodi-audiodecoder-vgmstream kodi-audiodecoder-timidity kodi-audiodecoder-stsound kodi-audiodecoder-snesapu kodi-audiodecoder-sidplay kodi-audiodecoder-nosefart kodi-audiodecoder-modplug kodi-pvr-vuplus kodi-pvr-vdr-vnsi kodi-pvr-vbox kodi-pvr-stalker kodi-pvr-pctv kodi-pvr-njoy kodi-pvr-nextpvr kodi-pvr-mythtv kodi-pvr-mythtv kodi-pvr-iptvsimple kodi-pvr-hts kodi-pvr-hdhomerun kodi-pvr-filmon kodi-pvr-dvbviewer kodi-pvr-dvblink kodi-pvr-demo kodi-pvr-argustv kodi-inputstream-rtmp kodi-inputstream-adaptive kodi-inputstream-rtmp kodi-inputstream-adaptive libsmbclient python-apt python-aptdaemon libcec"
 fi
 
 # Add service and watchdog for kodi at startup

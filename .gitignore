@@ -3,10 +3,4 @@ custom.d
 *.swp
 *.bak
 *.log
-noobs
 bootstrap.d/flags
-deb-packages/*/files-tmp
-deb-packages/rpi-userland/linux
-deb-packages/rpi-userland/firmware
-deb-packages/rpi-userland/files-firmware-tmp
-packages

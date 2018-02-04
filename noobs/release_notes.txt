@@ -1,0 +1,14 @@
+KBOX
+-------
+
+KBOX (Open Source Media Center) is a free and open source social media player founded in 2014 that lets you play back media from your local network, attached storage and the Internet. KBOX is the leading media center in terms of feature set and has a large and welcoming community.
+
+Here's why you might like it:
+
+-- It's free and open source.
+-- It takes less than five minutes to install
+-- It has automatic updates and an application store. KBOX keeps getting better!
+-- Enjoy content with ease from a variety of sources
+-- KBOX looks visually stunning
+
+For help and support as well as release notes please see kbox.tv. If you have issues with the NOOBS system or would like to set up an NFS or USB based install, you can try our installers for Windows, Mac OS X and Linux at kbox.tv/download. 

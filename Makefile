@@ -6,6 +6,7 @@
 # RPI 2B config is brcm2836
 # RPI 3B config is brcm2837
 CLEAN ?= true
+ENABLE_CAM ?= false
 
 ifeq ($(LOCALE),fr)
 	DEFLOCAL="fr_FR.UTF-8" 

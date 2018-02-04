@@ -1,3 +1,0 @@
-./preprocess-vmlinuz /etc/kernel/preinst.d
-./process-vmlinuz /etc/kernel/postinst.d
-./update-config /etc/kernel/postinst.d

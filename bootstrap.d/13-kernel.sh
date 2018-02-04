@@ -203,7 +203,7 @@ if [ "$BUILD_KERNEL" = true ] ; then
 		chroot_exec ln -sf /usr/src/linux "${R}/lib/modules/${KERNEL_VERSION}/source"
 	} fi
 }
-elif [ -n "$FIRMWARE_URL" ] && [ -n "$RPI_FIRMWARE_DIR" ]; then
+elif [ -z "$APT_INCLUDES_KERNEL"] && [ -n "$FIRMWARE_URL" ] && [ -n "$RPI_FIRMWARE_DIR" ]; then
 {
 	# Download firmware source
 	pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"

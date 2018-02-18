@@ -96,9 +96,12 @@ DEFLOCAL=${DEFLOCAL:="en_US.UTF-8"}
 TIMEZONE=${TIMEZONE:="Europe/Berlin"}
 EXPANDROOT=${EXPANDROOT:=true}
 
+#Execute custom's scripts in the folder named custo.d
+ENABLE_CUSTOMIZE=${ENABLE_CUSTOMIZE:=true}
+
 # Prepare date string for default image file name
 DATE="$(date +%Y-%m-%d)"
-IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${HOST_NAME}${RPI_MODEL}-${RELEASE}-${DATE}}
+IMAGE_NAME=${IMAGE_NAME:=${BASEDIR}/${HOST_NAME}-${RELEASE}-${DATE}}
 
 # Keyboard settings
 XKB_MODEL=${XKB_MODEL:=""}
@@ -516,7 +519,7 @@ done
 
 # Execute custom bootstrap scripts
 mkdir -p "custom.d/flags" && chmod o+rw "custom.d/flags"
-if [ -d "custom.d" ]; then
+if [ -d "custom.d" ] && [ "$ENABLE_CUSTOMIZE" = "true" ]; then
   for SCRIPT in custom.d/*.sh; do
     FLAG=$(basename "$SCRIPT")
     if [ ! -f "custom.d/flags/${FLAG%.*}" ]; then

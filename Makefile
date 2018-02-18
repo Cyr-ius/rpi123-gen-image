@@ -6,40 +6,31 @@
 # RPI 2B config is brcm2836
 # RPI 3B config is brcm2837
 CLEAN ?= true
-ENABLE_CAM ?= false
+ENABLE_CUSTOMIZE ?= false
+LOCALE ?= true
+RPI_MODEL ?= 2
 
-ifeq ($(LOCALE),fr)
-	DEFLOCAL="fr_FR.UTF-8" 
-	TIMEZONE="Europe/Paris" 
-	XKB_MODEL="pc105" 
-	XKB_LAYOUT="fr" 
-	XKB_VARIANT="oss"
+ifeq ($(MIN),true)
+	MIN:=ENABLE_MINBASE=true  ENABLE_REDUCE=true
 endif
 
-define rbp
-	sudo CLEAN=${CLEAN} DEFLOCAL=$(DEFLOCAL) TIMEZONE=$(TIMEZONE) XKB_MODEL=$(XKB_MODEL) XKB_LAYOUT=$(XKB_LAYOUT) XKB_VARIANT=$(XKB_VARIANT) \
-		ENABLE_WIRELESS=$(1) ENABLE_BLUETOOTH=$(2) ENABLE_NONFREE=$(3) \
-		APT_INCLUDES_KERNEL="rpi$(4)-firmware" RPI_MODEL=$(4) HOST_NAME=$@ ./rpi123-gen-image.sh
-endef
+ifeq ($(KODI),true)
+	KODI:=USER_NAME=kodi USER_PASSWORD=kodi ENABLE_CONSOLE=false ENABLE_INITRAMFS=true ENABLE_SPLASHSCREEN=true ENABLE_KODI=true ENABLE_KODI_AUTOSTART=true ENABLE_KODI_SPLASHSCREEN=true
+endif
 
-define rbp-min
-	sudo CLEAN=${CLEAN} DEFLOCAL=$(DEFLOCAL) TIMEZONE=$(TIMEZONE) XKB_MODEL=$(XKB_MODEL) XKB_LAYOUT=$(XKB_LAYOUT) XKB_VARIANT=$(XKB_VARIANT) \
-		ENABLE_WIRELESS=$(1) ENABLE_BLUETOOTH=$(2) ENABLE_NONFREE=$(3) \
-		ENABLE_MINBASE=true  ENABLE_REDUCE=true \
-		APT_INCLUDES_KERNEL="rpi$(4)-firmware" RPI_MODEL=$(4) HOST_NAME=$@ ./rpi123-gen-image.sh
-endef
+ifeq ($(WB),true)
+	WB:=ENABLE_WIRELESS=true ENABLE_BLUETOOTH=true ENABLE_NONFREE=true
+endif
 
-define rbp-kbox
-	sudo CLEAN=${CLEAN} DEFLOCAL=$(DEFLOCAL) TIMEZONE=$(TIMEZONE) XKB_MODEL=$(XKB_MODEL) XKB_LAYOUT=$(XKB_LAYOUT) XKB_VARIANT=$(XKB_VARIANT) \
-		ENABLE_WIRELESS=$(1) ENABLE_BLUETOOTH=$(2) ENABLE_NONFREE=$(3) \
-		USER_NAME="kodi" USER_PASSWORD="kodi" ENABLE_CONSOLE="false" ENABLE_INITRAMFS="true" ENABLE_SPLASHSCREEN="true" \
-		ENABLE_KODI="true" ENABLE_KODI_AUTOSTART="true" ENABLE_KODI_SPLASHSCREEN="true" \
-		APT_INCLUDES_KERNEL="rpi$(4)-firmware" RPI_MODEL=$(4) HOST_NAME=$@ ./rpi123-gen-image.sh
-endef
+ifeq ($(LOCALE),true)
+	LOCALE:=DEFLOCAL=fr_FR.UTF-8 TIMEZONE=Europe/Paris XKB_MODEL=pc105 XKB_LAYOUT=fr XKB_VARIANT=oss
+endif
+
+build:
+	sudo CLEAN=$(CLEAN) ENABLE_CUSTOMIZE=$(ENABLE_CUSTOMIZE) $(LOCALE) $(WB) $(KODI) RPI_MODEL=$(RPI_MODEL) APT_INCLUDES_KERNEL="rpi$(RPI_MODEL)-firmware" HOST_NAME=$(HOST_NAME) ./rpi123-gen-image.sh
 
 all: rbp0w rbp1 rbp2
 min: rbp0w-min rbp1-min rbp2-min
-env: rbp1-env rbp2-env
 kbox: rbp1-kbox rbp2-kbox
 
 rbp0:rbp1
@@ -51,75 +42,33 @@ rbp3-min:rbp2-min
 rbp3--kbox:rbp2-kbox
 
 rbp0w:
-	$(call rbp,true,true,true,1)
+	RPI_MODEL=1 HOST_NAME=$@ WB=true $(MAKE) build
 rbp0w-min:
-	$(call rbp-min,true,true,true,1)
+	RPI_MODEL=1 HOST_NAME=$@ WB=true MIN=true $(MAKE) build
 rbp0w-kbox:
-	$(call rbp-kbox,true,true,true,1)
+	RPI_MODEL=1 HOST_NAME=$@ WB=true KODI=true $(MAKE) build
 rbp1:
-	$(call rbp,false,false,false,1)
+	RPI_MODEL=1 HOST_NAME=$@ $(MAKE) build
 rbp1-min:
-	$(call rbp-min,false,false,false,1)
+	RPI_MODEL=1 HOST_NAME=$@ MIN=true $(MAKE) build
 rbp1-kbox:
-	$(call rbp-kbox,false,false,false,1)
+	RPI_MODEL=1 HOST_NAME=$@ KODI=true $(MAKE) build
 rbp2:
-	$(call rbp,false,false,false,2)
+	RPI_MODEL=2 HOST_NAME=$@ $(MAKE) build
 rbp2-min:
-	$(call rbp-min,false,false,false,2)
+	RPI_MODEL=2 HOST_NAME=$@ $(MAKE) build
 rbp2-kbox:
-	$(call rbp-kbox,false,false,false,2)
+	RPI_MODEL=2 HOST_NAME=$@ KODI=true $(MAKE) build
 rbp3x64:
-	$(call rbp,false,false,false,3x64)
+	RPI_MODEL=3x64 HOST_NAME=$@ $(MAKE) build
 rbp3x64-min:
-	$(call rbp-min,false,false,false,3x64)
+	RPI_MODEL=3x64 HOST_NAME=$@ MIN=true $(MAKE) build
 rbp3x64-kbox:
-	$(call rbp-kbox,false,false,false,3x64)
-	
-rbp0-env:rbp1-env
-rbp0w-env:rbp1-env
-rbp1-env:
-	sudo bash deb-packages/rpi-userland/build.sh 1
-
-rbp2-env:
-	sudo bash deb-packages/rpi-userland/build.sh 2
-
-rbp3-env:rbp2-env
-rbp3x64-env:
-	sudo bash deb-packages/rpi-userland/build.sh 3x64	
-
-rbp0-deb:rbp1-deb
-rbp0w-deb:rbp1-deb
-rbp1-deb:
-	sudo bash deb-packages/perftune/build.sh 1
-	sudo bash deb-packages/ply-lite/build.sh 1
-	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 1
-	sudo bash deb-packages/pi-bluetooth/build.sh 1
-	sudo bash deb-packages/kodi-autostart/build.sh 1
-	sudo bash deb-packages/libcec/build.sh 1
-	sudo bash deb-packages/shairplay/build.sh 1
-	
-rbp2-deb:
-	sudo bash deb-packages/perftune/build.sh 2
-	sudo bash deb-packages/ply-lite/build.sh 2
-	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 2
-	sudo bash deb-packages/pi-bluetooth/build.sh 2
-	sudo bash deb-packages/kodi-autostart/build.sh 2
-	sudo bash deb-packages/libcec/build.sh 2
-	sudo bash deb-packages/shairplay/build.sh 2	
-	
-rbp3-deb:rbp2-deb
-rbp3x64-deb:
-	sudo bash deb-packages/perftune/build.sh 3x64
-	sudo bash deb-packages/ply-lite/build.sh 3x64
-	sudo bash deb-packages/plymouth-theme-kbox-logo/build.sh 3x64
-	sudo bash deb-packages/pi-bluetooth/build.sh 3x64
-	sudo bash deb-packages/kodi-autostart/build.sh 3x64
-	sudo bash deb-packages/libcec/build.sh 3x64
-	sudo bash deb-packages/shairplay/build.sh 3x64	
+	RPI_MODEL=3x64 HOST_NAME=$@ KODI=true $(MAKE) build
 
 clean:
-	sudo rm -rf ./bootstrap.d/flags
-	sudo rm -rf ./custom.d/flags
-	sudo rm -rf ./images
-	sudo rm -rf ./tools
+	sudo rm -rf bootstrap.d/flags
+	sudo rm -rf custom.d/flags
+	sudo rm -rf images
+	sudo rm -rf tools
 	

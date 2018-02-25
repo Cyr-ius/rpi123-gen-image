@@ -26,7 +26,7 @@ ifeq ($(LOCALE),true)
 	LOCALE:=DEFLOCAL=fr_FR.UTF-8 TIMEZONE=Europe/Paris XKB_MODEL=pc105 XKB_LAYOUT=fr XKB_VARIANT=oss
 endif
 
-build:
+.build:
 	sudo CLEAN=$(CLEAN) ENABLE_CUSTOMIZE=$(ENABLE_CUSTOMIZE) $(LOCALE) $(WB) $(KODI) RPI_MODEL=$(RPI_MODEL) APT_INCLUDES_KERNEL="rpi$(RPI_MODEL)-firmware" HOST_NAME=$(HOST_NAME) ./rpi123-gen-image.sh
 
 all: rbp0w rbp1 rbp2
@@ -42,29 +42,29 @@ rbp3-min:rbp2-min
 rbp3--kbox:rbp2-kbox
 
 rbp0w:
-	RPI_MODEL=1 HOST_NAME=$@ WB=true $(MAKE) build
+	RPI_MODEL=1 HOST_NAME=$@ WB=true $(MAKE) .build
 rbp0w-min:
-	RPI_MODEL=1 HOST_NAME=$@ WB=true MIN=true $(MAKE) build
+	RPI_MODEL=1 HOST_NAME=$@ WB=true MIN=true $(MAKE) .build
 rbp0w-kbox:
-	RPI_MODEL=1 HOST_NAME=$@ WB=true KODI=true $(MAKE) build
+	RPI_MODEL=1 HOST_NAME=$@ WB=true KODI=true $(MAKE) .build
 rbp1:
-	RPI_MODEL=1 HOST_NAME=$@ $(MAKE) build
+	RPI_MODEL=1 HOST_NAME=$@ $(MAKE) .build
 rbp1-min:
-	RPI_MODEL=1 HOST_NAME=$@ MIN=true $(MAKE) build
+	RPI_MODEL=1 HOST_NAME=$@ MIN=true $(MAKE) .build
 rbp1-kbox:
-	RPI_MODEL=1 HOST_NAME=$@ KODI=true $(MAKE) build
+	RPI_MODEL=1 HOST_NAME=$@ KODI=true $(MAKE) .build
 rbp2:
-	RPI_MODEL=2 HOST_NAME=$@ $(MAKE) build
+	RPI_MODEL=2 HOST_NAME=$@ $(MAKE) .build
 rbp2-min:
-	RPI_MODEL=2 HOST_NAME=$@ $(MAKE) build
+	RPI_MODEL=2 HOST_NAME=$@ $(MAKE) .build
 rbp2-kbox:
-	RPI_MODEL=2 HOST_NAME=$@ KODI=true $(MAKE) build
+	RPI_MODEL=2 HOST_NAME=$@ KODI=true $(MAKE) .build
 rbp3x64:
-	RPI_MODEL=3x64 HOST_NAME=$@ $(MAKE) build
+	RPI_MODEL=3x64 HOST_NAME=$@ $(MAKE) .build
 rbp3x64-min:
-	RPI_MODEL=3x64 HOST_NAME=$@ MIN=true $(MAKE) build
+	RPI_MODEL=3x64 HOST_NAME=$@ MIN=true $(MAKE) .build
 rbp3x64-kbox:
-	RPI_MODEL=3x64 HOST_NAME=$@ KODI=true $(MAKE) build
+	RPI_MODEL=3x64 HOST_NAME=$@ KODI=true $(MAKE) .build
 
 clean:
 	sudo rm -rf bootstrap.d/flags

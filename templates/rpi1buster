@@ -1,0 +1,5 @@
+# Configuration template file used by rpi123-gen-image.sh
+RPI_MODEL=1
+RELEASE=buster
+BUILD_KERNEL=false
+ENABLE_RASPBIAN=true

@@ -1,2 +1,2 @@
-deb http://mirrordirector.raspbian.org/raspbian stretch main contrib
-#deb-src http://mirrordirector.raspbian.org/raspbian stretch main contrib
+deb http://mirrordirector.raspbian.org/raspbian #RELEASE main contrib
+#deb-src http://mirrordirector.raspbian.org/raspbian #RELEASE main contrib

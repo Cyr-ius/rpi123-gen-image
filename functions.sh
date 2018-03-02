@@ -59,7 +59,7 @@ chroot_exec() {
 
 as_nobody() {
   # Exec command as user nobody
-  sudo -E -u nobody LANG=C LC_ALL=C $*
+  sudo -E LANG=C LC_ALL=C $*
 }
 
 chroot_install_cc() {
@@ -83,6 +83,9 @@ chroot_remove_cc() {
   fi
 }
 
+message_splashscreen() {
+ [ "$ENABLE_SPLASHSCREEN" = true ] && echo "plymouth update --status=\"${*}\"" >> "${ETC_DIR}/rc.firstboot" || echo .
+}
 install_dpkg() {
     cp $* ${R}/tmp
     chroot_exec dpkg --unpack /tmp/$(basename $*)

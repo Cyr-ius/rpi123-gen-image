@@ -22,15 +22,16 @@ if [ "$BUILD_KERNEL" = true  ] ; then
   {
     # Create temporary directory for boot binaries
     temp_dir=$(as_nobody mktemp -d)
+    mkdir -p ${temp_dir}/boot
 
     # Install latest boot binaries from raspberry/firmware github
-    as_nobody wget -q -O "${temp_dir}/boot/bootcode.bin" "${FIRMWARE_URL}/bootcode.bin"
-    as_nobody wget -q -O "${temp_dir}/boot/fixup.dat" "${FIRMWARE_URL}/fixup.dat"
-    as_nobody wget -q -O "${temp_dir}/boot/fixup_cd.dat" "${FIRMWARE_URL}/fixup_cd.dat"
-    as_nobody wget -q -O "${temp_dir}/boot/fixup_x.dat" "${FIRMWARE_URL}/fixup_x.dat"
-    as_nobody wget -q -O "${temp_dir}/boot/start.elf" "${FIRMWARE_URL}/start.elf"
-    as_nobody wget -q -O "${temp_dir}/boot/start_cd.elf" "${FIRMWARE_URL}/start_cd.elf"
-    as_nobody wget -q -O "${temp_dir}/boot/start_x.elf" "${FIRMWARE_URL}/start_x.elf"
+    as_nobody wget -q -O "${temp_dir}/boot/bootcode.bin" "${FIRMWARE_URL}/raw/master/boot/bootcode.bin"
+    as_nobody wget -q -O "${temp_dir}/boot/fixup.dat" "${FIRMWARE_URL}/raw/master/boot/fixup.dat"
+    as_nobody wget -q -O "${temp_dir}/boot/fixup_cd.dat" "${FIRMWARE_URL}/raw/master/boot/fixup_cd.dat"
+    as_nobody wget -q -O "${temp_dir}/boot/fixup_x.dat" "${FIRMWARE_URL}/raw/master/boot/fixup_x.dat"
+    as_nobody wget -q -O "${temp_dir}/boot/start.elf" "${FIRMWARE_URL}/raw/master/boot/start.elf"
+    as_nobody wget -q -O "${temp_dir}/boot/start_cd.elf" "${FIRMWARE_URL}/raw/master/boot/start_cd.elf"
+    as_nobody wget -q -O "${temp_dir}/boot/start_x.elf" "${FIRMWARE_URL}/raw/master/boot/start_x.elf"
 
     # Move downloaded boot binaries
     mv "${temp_dir}/"* "${BOOT_DIR}/"
@@ -78,7 +79,7 @@ else
 fi
 
 # Set init to systemd if required by Debian release
-if [ "$RELEASE" = "stretch" ] ; then
+if [ "$RELEASE" = "stretch" ] || [ "$RELEASE" = "buster" ] ; then
   CMDLINE="${CMDLINE} init=/bin/systemd"
 fi
 
@@ -124,11 +125,6 @@ fi
 # Install and setup kernel modules to load at boot
 mkdir -p "${R}/lib/modules-load.d/"
 install_readonly files/modules/rpi.conf "${R}/lib/modules-load.d/rpi.conf"
-
-# Load hardware random module at boot
-#~ if [ "$ENABLE_HWRANDOM" = true ] && [ "$BUILD_KERNEL" = false ] ; then
-  #~ sed -i "s/^# bcm2708_rng/bcm2708_rng/" "${R}/lib/modules-load.d/rpi.conf"
-#~ fi
 
 # Load sound module at boot
 if [ "$ENABLE_SOUND" = true ] ; then

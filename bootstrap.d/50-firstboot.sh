@@ -5,12 +5,8 @@
 # Load utility functions
 . ./functions.sh
 
-display_message() {
- [ "$ENABLE_SPLASHSCREEN" = true ] && echo "plymouth update --status=\"${*}\"" >> "${ETC_DIR}/rc.firstboot" || echo .
-}
-
 # Prepare rc.firstboot script
-display_message "Please wait, first boot : initialize configuration..."
+message_splashscreen "Please wait, first boot : initialize configuration..."
 cat files/firstboot/10-begin.sh > "${ETC_DIR}/rc.firstboot"
 
 
@@ -43,17 +39,10 @@ if [ "$ENABLE_IFNAMES" = true ] ; then
   cat files/firstboot/27-restart-network.sh >> "${ETC_DIR}/rc.firstboot"
 fi
 
-# Enable mediacenter.service if Kodi installed
-if [ "$ENABLE_KODI" = true ] && [ "$ENABLE_KODI_AUTOSTART" = true ] ; then
-display_message "Please wait, first boot : enable mediacenter..."
-cat files/firstboot/30-enable-mediacenter.sh >> "${ETC_DIR}/rc.firstboot"
-chmod +x "${ETC_DIR}/rc.firstboot"
-fi
-
 # Finalize rc.firstboot script
 cat files/firstboot/99-finish.sh >> "${ETC_DIR}/rc.firstboot"
 chmod +x "${ETC_DIR}/rc.firstboot"
-display_message "Please wait, first boot : clean up ..."
+message_splashscreen "Please wait, first boot : clean up ..."
 
 
 # Install default rc.local if it does not exist

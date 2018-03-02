@@ -25,7 +25,10 @@ if [ "$ENABLE_KODI" = true ] ; then
 		
 		# Disable TTY1 because mediacenter.service start automatically KODI
 		chroot_exec systemctl disable getty@tty1.service
-
+		
+		# Enable mediacenter.service if Kodi installed
+		message_splashscreen "Please wait, first boot : enable mediacenter..."
+		cat files/firstboot/95-enable-mediacenter.sh >> "${ETC_DIR}/rc.firstboot"
 	fi
 
 	# Set Advanced Settings for Kodi
@@ -45,7 +48,7 @@ if [ "$ENABLE_KODI" = true ] ; then
 			install_readonly files/splashscreen/themes/kbox/kbox.script "${R}/usr/share/plymouth/themes/kbox/"
 			chroot_exec plymouth-set-default-theme -R kbox
 		fi
-	fi	
+	fi
 fi
 
 

@@ -6,7 +6,7 @@
 . ./functions.sh
 
 # Fix - Error PROTOCOL_V23 = PROTOCOL_TLS in python 2.7.13
-install_readonly files/customize/ssl.py "${R}/usr/lib/python2.7/"
+#install_readonly files/customize/ssl.py "${R}/usr/lib/python2.7/"
 
 # Fix - Error missing symbolic link in python 2.7.13
 chroot_exec << EOT

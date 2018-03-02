@@ -15,28 +15,27 @@ fi
 install_readonly files/apt/30-raspbian-stable "${ETC_DIR}/apt/preferences.d"
 install_readonly files/apt/06-noipv6 "${ETC_DIR}/apt/apt.conf.d"
 
-install_deb "gnupg2"
+#~ install_deb "gnupg2"
 
 # Install APT sources.list
 install_readonly files/apt/debian.list "${ETC_DIR}/apt/sources.list"
+sed "s/#RELEASE/${RELEASE}/g" -i "${ETC_DIR}/apt/sources.list"
 
 # Install APT raspbian
 if [ "$ENABLE_RASPBIAN" = true ] ; then  
   install_readonly files/apt/raspbian.list "${ETC_DIR}/apt/sources.list"
+  sed "s/#RELEASE/${RELEASE}/g" -i "${ETC_DIR}/apt/sources.list"  
   install_readonly files/apt/raspbian.gpg.key "${ETC_DIR}/apt"
-  chroot_exec<<EOF
-apt-key add - < /etc/apt/raspbian.gpg.key
-EOF
+  chroot_exec apt-key add /etc/apt/raspbian.gpg.key
 fi
 
 # Install APT raspberry.org
-if [ "$ENABLE_RASPBIAN" = true ] ; then  
+if [ "$ENABLE_RASPBERRYPI" = true ] ; then  
   install_readonly files/apt/20-raspberrypi-stable "${ETC_DIR}/apt/preferences.d"
   install_readonly files/apt/raspberrypi.list "${ETC_DIR}/apt/sources.list.d"
+  sed "s/#RELEASE/${RELEASE}/g" -i "${ETC_DIR}/apt/sources.list.d/raspberrypi.list"
   install_readonly files/apt/raspberrypi.gpg.key "${ETC_DIR}/apt"
-  chroot_exec<<EOF
-apt-key add - < /etc/apt/raspberrypi.gpg.key
-EOF
+  chroot_exec apt-key add /etc/apt/raspberrypi.gpg.key
 fi
 
 # Install APT  ipocus.net
@@ -44,10 +43,9 @@ if [ "$ENABLE_IPOCUS" = true ] ; then
 install_readonly files/apt/10-ipocus-stable "${ETC_DIR}/apt/preferences.d"
 [ $RPI_MODEL = 0 ] || [ $RPI_MODEL = 1 ] && install_readonly files/apt/ipocus.list.rbp1 "${ETC_DIR}/apt/sources.list.d/ipocus.list"
 [ $RPI_MODEL = 2 ] || [ $RPI_MODEL = 3 ] && install_readonly files/apt/ipocus.list.rbp2 "${ETC_DIR}/apt/sources.list.d/ipocus.list"
+sed "s/#RELEASE/${RELEASE}/g" -i "${ETC_DIR}/apt/sources.list.d/ipocus.list"
 install_readonly files/apt/ipocus.gpg.key "${ETC_DIR}/apt"
-chroot_exec<<EOF
-apt-key add - < /etc/apt/ipocus.gpg.key
-EOF
+chroot_exec apt-key add /etc/apt/ipocus.gpg.key
 fi
 
 # Allow the installation of non-free Debian packages

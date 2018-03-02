@@ -1,0 +1,9 @@
+# Configuration template file used by rpi123-gen-image.sh
+# Debian Stretch using the Arm64 for kernel compilation and Debian distribution.
+
+RPI_MODEL=3x64
+RELEASE=stretch
+BUILD_KERNEL=true
+ENABLE_WIRELESS=true
+ENABLE_BLUETOOTH=true
+ENABLE_NONFREE=true

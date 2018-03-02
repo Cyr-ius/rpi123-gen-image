@@ -3,7 +3,7 @@
 ########################################################################
 # rpi123-gen-image.sh					       2015-2017
 #
-# Advanced Debian "jessie" and "stretch"  bootstrap script for RPi1/2/3
+# Advanced Debian "jessie", "stretch" and "buster"  bootstrap script for RPi1/2/3
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -56,12 +56,12 @@ RELEASE=${RELEASE:=stretch}
 QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
 
 # URLs
-KERNEL_URL=${KERNEL_URL:=https://github.com/raspberrypi/linux.git}
-FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware.git}
-TOOLS_URL=${TOOLS_URL:=https://github.com/raspberrypi/tools.git}
-WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm}
-FBTURBO_URL=${FBTURBO_URL:=https://github.com/ssvb/xf86-video-fbturbo.git}
-UBOOT_URL=${UBOOT_URL:=git://git.denx.de/u-boot.git}
+KERNEL_URL=${KERNEL_URL:=https://github.com/raspberrypi/linux}
+FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware}
+TOOLS_URL=${TOOLS_URL:=https://github.com/raspberrypi/tools}
+WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm}
+FBTURBO_URL=${FBTURBO_URL:=https://github.com/ssvb/xf86-video-fbturbo}
+UBOOT_URL=${UBOOT_URL:=git://git.denx.de/u-boot}
 
 # Build directories
 BASEDIR=${BASEDIR:=$(pwd)/images/${RELEASE}}
@@ -71,7 +71,7 @@ BUILDDIR="${BASEDIR}/build"
 RESET=${RESET:=false}
 
 #Cleaning flags
-CLEAN=${CLEAN:=false}
+CLEAN=${CLEAN:=true}
 
 # Chroot directories
 R="${BUILDDIR}/chroot"
@@ -83,8 +83,6 @@ WLAN_FIRMWARE_DIR="${R}/lib/firmware/brcm"
 
 # Firmware directory: Blank if download from github
 RPI_FIRMWARE_DIR=${RPI_FIRMWARE_DIR:=${BUILDDIR}/firmware}
-#~ TOOLS_DIR=${TOOLS_DIR:=$(pwd)/tools}
-#~ DEB_PACKAGES=${DEB_PACKAGES:="$(pwd)/deb-packages"}
 NOOBS_DIR=${NOOBS_DIR:=$(pwd)/noobs}
 
 # General settings
@@ -97,7 +95,7 @@ TIMEZONE=${TIMEZONE:="Europe/Berlin"}
 EXPANDROOT=${EXPANDROOT:=true}
 
 #Execute custom's scripts in the folder named custo.d
-ENABLE_CUSTOMIZE=${ENABLE_CUSTOMIZE:=true}
+ENABLE_CUSTOMIZE=${ENABLE_CUSTOMIZE:=false}
 
 # Prepare date string for default image file name
 DATE="$(date +%Y-%m-%d)"
@@ -122,10 +120,11 @@ NET_NTP_1=${NET_NTP_1:=""}
 NET_NTP_2=${NET_NTP_2:=""}
 
 # APT settings
-ENABLE_RASPBIAN=${ENABLE_RASPBIAN:=true}
-ENABLE_IPOCUS=${ENABLE_IPOCUS:=true}
 APT_PROXY=${APT_PROXY:=""}
 APT_SERVER=${APT_SERVER:="http://ftp.debian.org/debian"}
+ENABLE_RASPBIAN=${ENABLE_RASPBIAN:=false}
+ENABLE_RASPBERRYPI=${ENABLE_RASPBERRYPI:=false}
+ENABLE_IPOCUS=${ENABLE_IPOCUS:=false}
 [ "$ENABLE_RASPBIAN" = true ] && APT_SERVER="http://mirrordirector.raspbian.org/raspbian"
 
 # Feature settings
@@ -218,6 +217,12 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
 APT_INCLUDES="${APT_INCLUDES} apt-transport-https apt-utils ca-certificates debian-archive-keyring dialog sudo systemd sysvinit-utils fake-hwclock net-tools bash-completion systemd-sysv"
+
+# Package apt-transport-https has been removed from Debian Buster release
+# this induces qemu error 383 which does not prevent building an image
+if [ "$RELEASE" = "buster" ] ; then
+  APT_INCLUDES="$(echo ${APT_INCLUDES} | sed "s/apt-transport-https //")"
+fi
 
 # Packages required for bootstrapping
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc psmisc dbus sudo"
@@ -346,7 +351,8 @@ fi
 
 # Add Kodi package
 if [ "$ENABLE_KODI" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-audioencoder-wav kodi-audioencoder-vorbis kodi-audioencoder-lame kodi-audioencoder-flac kodi-audiodecoder-vgmstream kodi-audiodecoder-timidity kodi-audiodecoder-stsound kodi-audiodecoder-snesapu kodi-audiodecoder-sidplay kodi-audiodecoder-nosefart kodi-audiodecoder-modplug kodi-pvr-vuplus kodi-pvr-vdr-vnsi kodi-pvr-vbox kodi-pvr-stalker kodi-pvr-pctv kodi-pvr-njoy kodi-pvr-nextpvr kodi-pvr-mythtv kodi-pvr-mythtv kodi-pvr-iptvsimple kodi-pvr-hts kodi-pvr-hdhomerun kodi-pvr-filmon kodi-pvr-dvbviewer kodi-pvr-dvblink kodi-pvr-demo kodi-pvr-argustv kodi-inputstream-rtmp kodi-inputstream-adaptive kodi-inputstream-rtmp kodi-inputstream-adaptive libsmbclient python-apt python-aptdaemon libcec"
+  #~ APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-audioencoder-wav kodi-audioencoder-vorbis kodi-audioencoder-lame kodi-audioencoder-flac kodi-audiodecoder-vgmstream kodi-audiodecoder-timidity kodi-audiodecoder-stsound kodi-audiodecoder-snesapu kodi-audiodecoder-sidplay kodi-audiodecoder-nosefart kodi-audiodecoder-modplug kodi-pvr-vuplus kodi-pvr-vdr-vnsi kodi-pvr-vbox kodi-pvr-stalker kodi-pvr-pctv kodi-pvr-njoy kodi-pvr-nextpvr kodi-pvr-mythtv kodi-pvr-mythtv kodi-pvr-iptvsimple kodi-pvr-hts kodi-pvr-hdhomerun kodi-pvr-filmon kodi-pvr-dvbviewer kodi-pvr-dvblink kodi-pvr-demo kodi-pvr-argustv kodi-inputstream-rtmp kodi-inputstream-adaptive kodi-inputstream-rtmp kodi-inputstream-adaptive libsmbclient python-apt python-aptdaemon libcec"
+  APT_INCLUDES="${APT_INCLUDES} kodi kodi-bin kodi-audioencoder* kodi-audiodecoder* kodi-pvr* kodi-inputstream* libsmbclient python-apt python-aptdaemon libcec"
 fi
 
 # Add service and watchdog for kodi at startup
@@ -477,7 +483,6 @@ if [ "$RESET" = true ]; then
   echo "Reset flags in bootstrap.d and custom.d and delete firmware and tools folders"
   [ -d "bootstrap.d/flags" ] && rm -rf bootstrap.d/flags
   [ -d "custom.d/flags" ] && rm -rf custom.d/flags
-  #~ [ -d "${TOOLS_DIR}" ] && rm -rf ${TOOLS_DIR}
   [ -d "packages" ] && rm -rf packages
   [ -d "${BUILDDIR}" ] && rm -rf ${BUILDDIR}  
 fi
@@ -498,7 +503,7 @@ if [ "$CLEAN" = true ]; then
 fi
 
 # Check if build directory has enough of free disk space >512MB
-if [ "$(df --output=avail ${BUILDDIR} | sed "1d")" -le "524288" ] ; then
+if [ -d "${BUILDDIR}" ] && [ "$(df --output=avail ${BUILDDIR} | sed "1d")" -le "524288" ] ; then
   echo "error: ${BUILDDIR} not enough space left to generate the output image!"
   exit 1
 fi
@@ -516,6 +521,8 @@ for SCRIPT in bootstrap.d/*.sh; do
     touch "bootstrap.d/flags/${FLAG%.*}"
   fi
 done
+
+echo "######### $ENABLE_CAMERA ###########"
 
 # Execute custom bootstrap scripts
 mkdir -p "custom.d/flags" && chmod o+rw "custom.d/flags"

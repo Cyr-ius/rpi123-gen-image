@@ -1,0 +1,5 @@
+# Configuration template file used by rpi123-gen-image.sh
+RPI_MODEL=1
+RELEASE=stretch
+BUILD_KERNEL=true
+ENABLE_RASPBIAN=true

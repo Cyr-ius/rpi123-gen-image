@@ -1,0 +1,8 @@
+# Configuration template file used by rpi123-gen-image.sh
+RPI_MODEL=0
+RELEASE=buster
+BUILD_KERNEL=false
+ENABLE_WIRELESS=true
+ENABLE_BLUETOOTH=true
+ENABLE_NONFREE=true
+ENABLE_RASPBIAN=true

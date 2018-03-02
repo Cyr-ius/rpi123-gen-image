@@ -86,7 +86,6 @@ fi
 # Disable blinking cursor on splashscreen
 if [ "$ENABLE_SPLASHSCREEN" = true ]; then
   CMDLINE="${CMDLINE} vt.global_cursor_default=0 quiet splash plymouth.ignore-serial-consoles"
-  echo "disable_splash=1" >> "${BOOT_DIR}/config.txt" 
 fi
 
 # Install firmware boot cmdline
@@ -94,6 +93,11 @@ echo "${CMDLINE}" > "${BOOT_DIR}/cmdline.txt"
 
 # Install firmware config
 install_readonly files/boot/config.txt "${BOOT_DIR}/config.txt"
+
+# Disable Rainbow splashscreen
+if [ "$ENABLE_SPLASHSCREEN" = true ]; then
+  echo "disable_splash=1" >> "${BOOT_DIR}/config.txt" 
+fi
 
 # Setup minimal GPU memory allocation size: 16MB (no X)
 if [ "$ENABLE_MINGPU" = true ] ; then
@@ -161,7 +165,7 @@ install_readonly files/modules/raspi-blacklist.conf "${ETC_DIR}/modprobe.d/raspi
 # Install sysctl.d configuration files
 install_readonly files/sysctl.d/81-rpi-vm.conf "${ETC_DIR}/sysctl.d/81-rpi-vm.conf"
 
-if [ -z "$APT_INCLUDES_KERNEL"] && [ -d "$RPI_FIRMWARE_DIR" ]; then
+if [ -z "$APT_INCLUDES_KERNEL" ] && [ -d "$RPI_FIRMWARE_DIR" ]; then
   # Move downloaded firmware binary blob
   [ $RPI_MODEL = 0 ] || [ $RPI_MODEL = 1 ] &&  cp -r "${RPI_FIRMWARE_DIR}/opt/vc" "${R}/opt"
   [ $RPI_MODEL = 2 ] || [ $RPI_MODEL = 3 ] &&  cp -r "${RPI_FIRMWARE_DIR}/hardfp/opt/vc" "${R}/opt"

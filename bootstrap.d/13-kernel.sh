@@ -16,6 +16,7 @@ mkdir -p "${ETC_DIR}/kernel/postinst.d"
 mkdir -p "${ETC_DIR}/kernel/preinst.d"
 install_exec files/kernel/postinst.d/process-vmlinuz "${ETC_DIR}/kernel/postinst.d"
 install_exec files/kernel/postinst.d/update-config "${ETC_DIR}/kernel/postinst.d"
+install_exec files/kernel/postinst.d/update-notifier "${ETC_DIR}/kernel/postinst.d"
 install_exec files/kernel/preinst.d/preprocess-vmlinuz "${ETC_DIR}/kernel/preinst.d"
 install_readonly files/kernel/kernel-img.conf "${ETC_DIR}"
 

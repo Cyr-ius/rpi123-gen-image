@@ -1,2 +1,2 @@
-deb http://packages.ipocus.net #RELEASE main rbp1
-#deb http://packages.ipocus.net sid main rbp1
+deb http://packages.ipocus.net stable main rbp1
+#deb http://packages.ipocus.net unstable main rbp1

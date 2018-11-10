@@ -7,7 +7,7 @@
 # RPI 3B config is brcm2837
 LOCALE ?= true
 RPI_MODEL ?= 2
-GENERIC_OPTIONS=ENABLE_IPOCUS=true ENABLE_RASPBERRYPI=true ENABLE_RASPBIAN=true RPI_MODEL=$(RPI_MODEL) APT_INCLUDES_KERNEL="rpi$(RPI_MODEL)-firmware" HOST_NAME=$(HOST_NAME)
+GENERIC_OPTIONS=ENABLE_IPOCUS=true ENABLE_RASPBERRYPI=true ENABLE_RASPBIAN=true RPI_MODEL=$(RPI_MODEL) APT_INCLUDES_KERNEL="rbpi$(RPI_MODEL)-firmware" HOST_NAME=$(HOST_NAME)
 
 ifeq ($(MIN),true)
 	GENERIC_OPTIONS:=ENABLE_MINBASE=true ENABLE_REDUCE=true $(GENERIC_OPTIONS)
@@ -30,7 +30,7 @@ ifeq ($(CLEAN),false)
 endif
 
 ifeq ($(CUSTO),true)
-	GENERIC_OPTIONS:=ENABLE_CUSTOMIZE=true $(GENERIC_OPTIONS)
+	GENERIC_OPTIONS:=ENABLE_CUSTOMIZE=true RELEASE=stretch $(GENERIC_OPTIONS)
 endif
 
 ifeq ($(CAM),true)
@@ -40,55 +40,59 @@ endif
 .build:
 	sudo $(GENERIC_OPTIONS) ./rpi123-gen-image.sh
 
-all: rbp0w rbp1 rbp2
-min: rbp0w-min rbp1-min rbp2-min
-kbox: rbp1-kbox rbp2-kbox
-custo: rbp1-custo rbp2-custo
+all: rbpi0w rbpi1 rbpi2
+min: rbpi0w-min rbpi1-min rbpi2-min
+kbox: rbpi1-kbox rbpi2-kbox
+custo: rbpi1-custo rbpi2-custo
 
-rbp0:rbp1
-rbp0-min:rbp1-min	
-rbp0-kbox:rbp1-kbox
+rbpi0:rbpi1
+rbpi0-min:rbpi1-min	
+rbpi0-kbox:rbpi1-kbox
 
-rbp3:rbp2
-rbp3-min:rbp2-min
-rbp3-kbox:rbp2-kbox
-
-rbp0w:
+rbpi0w:
 	RPI_MODEL=1 HOST_NAME=$@ WB=true $(MAKE) .build
-rbp0w-min:
+rbpi0w-min:
 	RPI_MODEL=1 HOST_NAME=$@ WB=true MIN=true $(MAKE) .build
-rbp0w-kbox:
+rbpi0w-kbox:
 	RPI_MODEL=1 HOST_NAME=$@ WB=true KODI=true $(MAKE) .build
-rbp0w-cam:
-	RPI_MODEL=1 HOST_NAME=$@ WB=true MIN=true CUSTO=true CAM=true $(MAKE) .build
+rbpi0w-cam:
+	RPI_MODEL=1 HOST_NAME=pi-cam WB=true MIN=true CUSTO=true CAM=true $(MAKE) .build
 
-rbp1:
+rbpi1:
 	RPI_MODEL=1 HOST_NAME=$@ $(MAKE) .build
-rbp1-min:
+rbpi1-min:
 	RPI_MODEL=1 HOST_NAME=$@ MIN=true $(MAKE) .build
-rbp1-kbox:
+rbpi1-kbox:
 	RPI_MODEL=1 HOST_NAME=$@ KODI=true $(MAKE) .build
-rbp1-custo:
-	RPI_MODEL=1 HOST_NAME=$@ KODI=true CUSTO=true LOCALE=true $(MAKE) .build
+rbpi1-custo:
+	RPI_MODEL=1 HOST_NAME=alfred KODI=true CUSTO=true LOCALE=true $(MAKE) .build
 
-rbp2:
+rbpi2:
 	RPI_MODEL=2 HOST_NAME=$@ $(MAKE) .build
-rbp2-min:
+rbpi2-min:
 	RPI_MODEL=2 HOST_NAME=$@ MIN=true $(MAKE) .build
-rbp2-kbox:
+rbpi2-kbox:
 	RPI_MODEL=2 HOST_NAME=$@ KODI=true $(MAKE) .build
-rbp2-custo:
-	RPI_MODEL=2 HOST_NAME=$@ KODI=true CUSTO=true LOCALE=true $(MAKE) .build
+rbpi2-custo:
+	RPI_MODEL=2 HOST_NAME=alfred KODI=true CUSTO=true LOCALE=true $(MAKE) .build
 
-rbp3x64:
+rbpi3:
+	RPI_MODEL=2 HOST_NAME=$@ WB=true $(MAKE) .build
+rbpi3-min:
+	RPI_MODEL=2 HOST_NAME=$@ MIN=true WB=true $(MAKE) .build
+rbpi3-kbox:
+	RPI_MODEL=2 HOST_NAME=$@ KODI=true WB=true $(MAKE) .build
+rbpi3-custo:
+	RPI_MODEL=2 HOST_NAME=alfred KODI=true CUSTO=true LOCALE=true WB=true $(MAKE) .build
+
+rbpi3x64:
 	RPI_MODEL=3x64 HOST_NAME=$@ $(MAKE) .build
-rbp3x64-min:
+rbpi3x64-min:
 	RPI_MODEL=3x64 HOST_NAME=$@ MIN=true $(MAKE) .build
-rbp3x64-kbox:
+rbpi3x64-kbox:
 	RPI_MODEL=3x64 HOST_NAME=$@ KODI=true $(MAKE) .build
 
 clean:
 	sudo rm -rf bootstrap.d/flags
 	sudo rm -rf custom.d/flags
 	sudo rm -rf images
-	

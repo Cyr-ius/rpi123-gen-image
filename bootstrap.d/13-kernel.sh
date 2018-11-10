@@ -16,12 +16,11 @@ mkdir -p "${ETC_DIR}/kernel/postinst.d"
 mkdir -p "${ETC_DIR}/kernel/preinst.d"
 install_exec files/kernel/postinst.d/process-vmlinuz "${ETC_DIR}/kernel/postinst.d"
 install_exec files/kernel/postinst.d/update-config "${ETC_DIR}/kernel/postinst.d"
-install_exec files/kernel/postinst.d/update-notifier "${ETC_DIR}/kernel/postinst.d"
+install_exec files/kernel/postinst.d/restart-notifier "${ETC_DIR}/kernel/postinst.d"
 install_exec files/kernel/preinst.d/preprocess-vmlinuz "${ETC_DIR}/kernel/preinst.d"
 install_readonly files/kernel/kernel-img.conf "${ETC_DIR}"
 
-# Install Kernel package if exists
-if [ -n "$(search_deb $APT_INCLUDES_KERNEL)" ]; then 
+if [ -n "$APT_INCLUDES_KERNEL" ]  && [ -n "$(search_deb $APT_INCLUDES_KERNEL)" ]; then # Install Kernel package if exists
 {
   install_deb $APT_INCLUDES_KERNEL
   if [ ! $? ]; then
@@ -30,10 +29,24 @@ if [ -n "$(search_deb $APT_INCLUDES_KERNEL)" ]; then
 	exit 1
   fi
   return;
-} fi
-
-# Fetch and build latest raspberry kernel
-if [ "$BUILD_KERNEL" = true ] ; then
+}
+elif [ -n "$FIRMWARE_URL" ] && [ -n "$RPI_FIRMWARE_DIR" ]; then # Install Kernel if exists path binaries
+{
+	# Download firmware source
+	pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
+	chmod ugo+rw "${RPI_FIRMWARE_DIR}"
+    
+	# Copy kernel and modules
+	cp -r "${RPI_FIRMWARE_DIR}/boot" "${R}"
+	cp -r "${RPI_FIRMWARE_DIR}/modules" "${R}/lib"
+	
+	#Get version
+	KERNEL_VERSION="$(ls ${RPI_FIRMWARE_DIR}/modules |grep -P '[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}' -o | head -1)"
+	[ $RPI_MODEL = 0 ] || [ $RPI_MODEL = 1 ] && KERNEL_VERSION=$KERNEL_VERSION+
+	[ $RPI_MODEL = 2 ] || [ $RPI_MODEL = 3 ] && KERNEL_VERSION=$KERNEL_VERSION-v7+
+	echo $KERNEL_VERSION > "${BOOT_DIR}/kernel.release"
+} 
+elif [ "$BUILD_KERNEL" = true ] ; then # Fetch and build latest raspberry kernel
 {
 	# Setup source directory
 	mkdir -p "${R}/usr/src/linux"
@@ -153,7 +166,9 @@ if [ "$BUILD_KERNEL" = true ] ; then
 		make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" INSTALL_MOD_PATH=../../.. modules_install
 
 		# Install kernel firmware
-		make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}-" INSTALL_FW_PATH=../../../lib firmware_install
+		if [ $(cat ./Makefile | grep "^firmware_install:") ] ; then
+		      make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" INSTALL_FW_PATH=../../../lib firmware_install
+		fi
 	} fi
 
 	# Install kernel headers
@@ -204,25 +219,9 @@ if [ "$BUILD_KERNEL" = true ] ; then
 		chroot_exec ln -sf /usr/src/linux "${R}/lib/modules/${KERNEL_VERSION}/source"
 	} fi
 }
-elif [ -z "$APT_INCLUDES_KERNEL"] && [ -n "$FIRMWARE_URL" ] && [ -n "$RPI_FIRMWARE_DIR" ]; then
-{
-	# Download firmware source
-	pull_source "${FIRMWARE_URL}" "${RPI_FIRMWARE_DIR}"
-	chmod ugo+rw "${RPI_FIRMWARE_DIR}"
-    
-	# Copy kernel and modules
-	cp -r "${RPI_FIRMWARE_DIR}/boot" "${R}"
-	cp -r "${RPI_FIRMWARE_DIR}/modules" "${R}/lib"
-	
-	#Get version
-	KERNEL_VERSION="$(ls ${RPI_FIRMWARE_DIR}/modules |grep -P '[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}' -o | head -1)"
-	[ $RPI_MODEL = 0 ] || [ $RPI_MODEL = 1 ] && KERNEL_VERSION=$KERNEL_VERSION+
-	[ $RPI_MODEL = 2 ] || [ $RPI_MODEL = 3 ] && KERNEL_VERSION=$KERNEL_VERSION-v7+
-	echo $KERNEL_VERSION > "${BOOT_DIR}/kernel.release"
-} 
 else 
 {
-	echo "error: kernel not found"
+	echo "error: Kernel not found"
 	cleanup
 	exit 1
 } fi

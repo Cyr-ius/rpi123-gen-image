@@ -1,2 +1,2 @@
-deb http://mirrordirector.raspbian.org/raspbian #RELEASE main contrib
+deb http://archive.raspbian.org/raspbian #RELEASE main contrib
 #deb-src http://mirrordirector.raspbian.org/raspbian #RELEASE main contrib
